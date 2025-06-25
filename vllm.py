@@ -17,10 +17,9 @@ def extract_text_from_pdf(pdf_path):
     return full_text
 
 def enlever_caracteres_speciaux(texte):
-    """Nettoyage des caract  res sp  ciaux"""
-    pattern = r'[^a-zA-Z0-9\s ^b $.,:;!?%()\-_/                              ]'
-    texte_nettoye = re.sub(pattern, '', texte)
-    return texte_nettoye
+    """Nettoyage des caractères spéciaux"""
+    pattern = r'[^a-zA-Z0-9\s€$.,:;!?%()\-_/]'
+    return re.sub(pattern, '', texte)
 
 def convert_to_docling(text):
     """Structure DOCLING"""
@@ -30,15 +29,15 @@ def convert_to_docling(text):
     for line in lines:
         if "Total" in line or "TVA" in line:
             section = "footer"
-        elif any(keyword in line for keyword in ["Article", "Quantit  ", "Prix"]):
+        elif any(keyword in line for keyword in ["Article", "Quantité", "Prix"]):
             section = "body"
         docling[section].append(line.strip())
     return docling
 
 def docling_to_markdown(docling):
-    """ Converts DOCLING structure to Markdown adapted to new extraction fields """
+    """Convertit la structure DOCLING en prompt Markdown adapté"""
     markdown = (
-        "# Voici une facture, R  ponds moi uniquement avec cette structure json :\n"
+        "# Voici une facture, réponds-moi uniquement avec cette structure json :\n"
         "{{\n"
         "  \"entreprise\": None \"\",\n"
         "  \"tva_intracommunautaire\": None\"\",\n"
@@ -51,12 +50,14 @@ def docling_to_markdown(docling):
         "Voici le contenu OCR extrait :\n\n"
     )
     if docling["header"]:
-        markdown += "## En-t  te\n\n" + "\n".join(docling["header"]) + "\n\n"
+        markdown += "## En-tête\n\n" + "\n".join(docling["header"]) + "\n\n"
 
     if docling["body"]:
-        markdown += "### D  tails des articles\n\n" \
-                    "| Article | Quantit   | Prix Unitaire | Total |\n" \
-                    "|---------|----------|--------------|-------|\n"
+        markdown += (
+            "### Détails des articles\n\n"
+            "| Article | Quantité | Prix Unitaire | Total |\n"
+            "|---------|----------|----------------|-------|\n"
+        )
         for line in docling["body"]:
             parts = line.split()
             if len(parts) >= 4:
@@ -69,7 +70,7 @@ def docling_to_markdown(docling):
     return markdown
 
 def query_vllm(model, prompt):
-    """Appel VLLM local en mode /v1/completions"""
+    """Appel VLLM local via /v1/completions"""
     url = "http://127.0.0.1:8000/v1/completions"
     headers = {"Content-Type": "application/json"}
 
@@ -82,9 +83,7 @@ def query_vllm(model, prompt):
 
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()
-    result = response.json()
-    return result["choices"][0]["text"].strip()
-
+    return response.json()["choices"][0]["text"].strip()
 
 def main(pdf_path, model="/workspace/models/mistral-7b-instruct"):
     text = extract_text_from_pdf(pdf_path)
@@ -92,25 +91,23 @@ def main(pdf_path, model="/workspace/models/mistral-7b-instruct"):
     docling = convert_to_docling(text)
     markdown = docling_to_markdown(docling)
 
-    print("Prompt envoy   au mod  le :\n", markdown)
+    print("Prompt envoyé au modèle :\n", markdown)
 
     start_time = time.perf_counter()
     response = query_vllm(model, markdown)
-    end_time = time.perf_counter()
+    elapsed_time = time.perf_counter() - start_time
 
-    elapsed_time = end_time - start_time
-
-    print("\nLLM Response:\n", response)
-    print(f"\nTemps de r  ponse du mod  le : {elapsed_time:.3f} secondes")
+    print("\nRéponse du LLM :\n", response)
+    print(f"\nTemps de réponse du modèle : {elapsed_time:.3f} secondes")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process a PDF file and extract structured data.")
-    parser.add_argument("pdf_path", type=str, help="Path to the PDF file to process")
-    parser.add_argument("--model", type=str, default="/workspace/models/mistral-7b-instruct", help="LLM model to use")
+    parser = argparse.ArgumentParser(description="Processus d'extraction de données depuis une facture PDF.")
+    parser.add_argument("pdf_path", type=str, help="Chemin vers le fichier PDF")
+    parser.add_argument("--model", type=str, default="/workspace/models/mistral-7b-instruct", help="Chemin vers le modèle local")
     args = parser.parse_args()
 
     if not os.path.exists(args.pdf_path):
-        print(f"Error: The file {args.pdf_path} does not exist.")
+        print(f"Erreur : le fichier {args.pdf_path} n'existe pas.")
         exit(1)
 
     main(args.pdf_path, args.model)
