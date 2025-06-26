@@ -37,7 +37,8 @@ def convert_to_docling(text):
 def docling_to_markdown(docling):
     """Convertit la structure DOCLING en prompt Markdown adapté"""
     markdown = (
-        "# Voici une facture, réponds-moi uniquement avec cette structure json :\n"
+        "# Voici une facture. Réponds uniquement avec un JSON strictement conforme au format ci-dessous, sans aucun mot en dehors du JSON. Si une information est manquante, mets la valeur à null.\n\n"
+        "FORMAT ATTENDU :\n"
         "{{\n"
         "  \"entreprise\": None \"\",\n"
         "  \"tva_intracommunautaire\": None\"\",\n"
@@ -45,6 +46,7 @@ def docling_to_markdown(docling):
         "  \"numero_facture_ou_piece\": None\"\",\n"
         "  \"date\": None\"\",\n"
         "  \"montant_TTC \": None\"\",\n"
+        "  \"montant_Hors_Taxe \": None\"\",\n"
         "  \"montant_TVA\": None\"\"\n"
         "}}\n\n"
         "Voici le contenu OCR extrait :\n\n"
