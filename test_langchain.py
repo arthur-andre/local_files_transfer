@@ -22,12 +22,12 @@ def charger_llm(api_base: str, model_name: str = "mistral") -> ChatOpenAI:
 def construire_agent(db: SQLDatabase, llm: ChatOpenAI, verbose: bool = True):
     """Construit un agent SQL LangChain avec les bons outils."""
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
-    return create_sql_agent(llm=llm, toolkit=toolkit, verbose=verbose)  # ✅ passer toolkit, pas tools
+    return create_sql_agent(llm=llm, toolkit=toolkit, verbose=verbose, handle_parsing_errors=True)
 
 
 def executer_question(agent, question: str):
-    """Exécute une question via l'agent et retourne la réponse."""
-    return agent.invoke(question)
+    result = agent.invoke(question)
+    return result['output'] if isinstance(result, dict) and 'output' in result else result
 
 
 def main():
