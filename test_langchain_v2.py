@@ -3,7 +3,7 @@ from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain_openai import ChatOpenAI
 from langchain.agents import initialize_agent, AgentType
 
-db = SQLDatabase.from_uri("sqlite:////root/local_files_transfer/test_multi_tables.db")
+db = SQLDatabase.from_uri("sqlite:////workspace/local_files_transfer/test_multi_tables.db")
 llm = ChatOpenAI(temperature=0, model="/workspace/models/mistral-7b-instruct", openai_api_base="http://localhost:8000/v1", openai_api_key="fake")
 
 # Outil SQL
