@@ -8,12 +8,13 @@ llm = ChatOpenAI(temperature=0, model="/workspace/models/mistral-7b-instruct", o
 
 # Outil SQL
 sql_tool = QuerySQLDataBaseTool(db=db)
+sql_tool.name = "query_sql"  # 🔧 nom simple et sûr
 
 # Création d’un agent avec les outils
 agent = initialize_agent(
     tools=[sql_tool],
     llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,  # important !
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
     verbose=True
 )
 
