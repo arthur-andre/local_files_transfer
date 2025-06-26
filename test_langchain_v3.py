@@ -29,6 +29,18 @@ def extraire_sql_depuis_texte(texte: str) -> str:
     return match.group(1).strip() if match else None
 
 
+def afficher_reponse_llm_brute(llm_response):
+    from rich.console import Console
+    console = Console()
+
+    content = llm_response.content.strip()
+
+    # Nettoyage minimal (ex : double sauts de ligne → saut simple)
+    content = content.replace('\n\n', '\n')
+
+    console.print("\n[bold cyan]📊 Réponse de l'assistant :[/bold cyan]\n")
+    console.print(content, style="white")
+
 def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str) -> str:
     prompt = f"""
 Tu es un assistant expert en base de données.
@@ -76,7 +88,7 @@ def main():
 
     # Réponse finale reformulée
     reponse = reponse_finale(llm, question, requete_sql, resultat_sql)
-    print("\n📊 Réponse de l'assistant :\n", reponse)
+    afficher_reponse_llm_brute(reponse)
 
 
 if __name__ == "__main__":
