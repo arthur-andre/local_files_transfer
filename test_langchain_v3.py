@@ -1,10 +1,12 @@
+import argparse
+import re
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.agent_toolkits.sql.base import create_sql_agent
+from rich.console import Console
 
-import re
-
+console = Console()
 
 def charger_base_sqlite(db_path: str) -> SQLDatabase:
     return SQLDatabase.from_uri(f"sqlite:///{db_path}")
@@ -30,16 +32,10 @@ def extraire_sql_depuis_texte(texte: str) -> str:
 
 
 def afficher_reponse_llm_brute(llm_response):
-    from rich.console import Console
-    console = Console()
-
-    content = llm_response.content.strip()
-
-    # Nettoyage minimal (ex : double sauts de ligne → saut simple)
-    content = content.replace('\n\n', '\n')
-
+    content = llm_response.content.strip().replace('\n\n', '\n')
     console.print("\n[bold cyan]📊 Réponse de l'assistant :[/bold cyan]\n")
     console.print(content, style="white")
+
 
 def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str) -> str:
     prompt = f"""
@@ -60,33 +56,33 @@ Formule une réponse synthétique et claire à la question en t'appuyant sur les
 
 
 def main():
-    # Config
-    chemin_db = "/workspace/local_files_transfer/test_multi_tables.db"
+    parser = argparse.ArgumentParser(description="Pose une question SQL à une base via LLM.")
+    parser.add_argument("--db", required=True, help="Chemin absolu vers la base SQLite (.db)")
+    parser.add_argument("--question", required=True, help="Question à poser à l'assistant SQL")
+
+    args = parser.parse_args()
+    chemin_db = args.db
+    question = args.question
+
     api_base = "http://localhost:8000/v1"
     modele = "/workspace/models/mistral-7b-instruct"
 
-    # Chargement
     db = charger_base_sqlite(chemin_db)
     llm = charger_llm(api_base=api_base, model_name=modele)
     agent = construire_agent(db=db, llm=llm)
 
-    # Question initiale
-    question = "Quels sont les 5 produits les plus vendus en 2024 ?"
     agent_output = agent.invoke(question)
-
     texte_brut = agent_output.get("output", "") if isinstance(agent_output, dict) else agent_output
     requete_sql = extraire_sql_depuis_texte(texte_brut)
 
     if not requete_sql:
         raise RuntimeError("Impossible d'extraire la requête SQL depuis la réponse du LLM.")
 
-    # Exécution réelle de la requête SQL
     try:
         resultat_sql = db.run(requete_sql)
     except Exception as e:
         resultat_sql = f"[ERREUR SQL] {e}"
 
-    # Réponse finale reformulée
     reponse = reponse_finale(llm, question, requete_sql, resultat_sql)
     afficher_reponse_llm_brute(reponse)
 
