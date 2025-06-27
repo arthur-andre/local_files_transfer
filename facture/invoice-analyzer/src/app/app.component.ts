@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import * as pdfjsLib from 'pdfjs-dist';
 
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc =
-  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule], 
+  imports: [CommonModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
@@ -16,6 +16,11 @@ export class AppComponent {
   result: any = null;
   highlightKey: string = '';
   selectedFile: File | null = null;
+  pdfDoc: any = null;
+  ctx: CanvasRenderingContext2D | null = null;
+  canvas: HTMLCanvasElement | null = null;
+  pageRendered = false;
+  positions: any = {};
 
   readonly champsFixes: string[] = [
     "entreprise",
@@ -33,56 +38,24 @@ export class AppComponent {
 
     if (this.selectedFile) {
       const reader = new FileReader();
-
       reader.onload = async () => {
         const typedarray = new Uint8Array(reader.result as ArrayBuffer);
-        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-        const page = await pdf.getPage(1);
-        const canvas: any = document.getElementById('pdfCanvas');
-        const context = canvas.getContext('2d');
+        this.pdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        const page = await this.pdfDoc.getPage(1);
+
+        this.canvas = document.getElementById('pdfCanvas') as HTMLCanvasElement;
+        this.ctx = this.canvas.getContext('2d');
         const viewport = page.getViewport({ scale: 1.5 });
 
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        this.canvas.height = viewport.height;
+        this.canvas.width = viewport.width;
 
-        await page.render({ canvasContext: context, viewport }).promise;
+        await page.render({ canvasContext: this.ctx!, viewport }).promise;
+        this.pageRendered = true;
       };
-
       reader.readAsArrayBuffer(this.selectedFile);
     }
   }
-
-//   async analyzePDF() {
-//     if (!this.selectedFile) return;
-
-//     const formData = new FormData();
-//     formData.append('file', this.selectedFile);
-
-//     const response = await fetch('https://TON_ENDPOINT_RUNPOD/upload', {
-//       method: 'POST',
-//       body: formData
-//     });
-
-//     const full = await response.json();
-//     this.result = full.result;
-//   }
-  async analyzePDF_2() {
-    if (!this.selectedFile) return;
-
-    console.log("🔍 Simulation d'appel backend…");
-
-    // Simulation manuelle d'un résultat de LLM
-    this.result = {
-        entreprise: "EDF",
-        tva_intracommunautaire: "FR123456789",
-        "SIRET/SIREN": "73282932000074",
-        numero_facture_ou_piece: "FAC-2025-0042",
-        date: "2025-06-27",
-        montant_TTC: "249,60 €",
-        montant_Hors_Taxe: "208,00 €",
-        montant_TVA: "41,60 €"
-    };
-    }
 
   async analyzePDF() {
     if (!this.selectedFile) return;
@@ -91,40 +64,58 @@ export class AppComponent {
     formData.append('file', this.selectedFile);
 
     try {
-        const response = await fetch('http://localhost:8000/upload', {
+      const response = await fetch('http://localhost:8000/upload', {
         method: 'POST',
         body: formData
-        });
+      });
 
-        const result = await response.json();
-        console.log(result);
+      const full = await response.json();
 
-        const full = await response.json();
-
-        if (!response.ok) {
+      if (!response.ok) {
         throw new Error(full?.error || 'Erreur inconnue');
-        }
+      }
 
-        this.result = full.result;
-        console.log("✅ Résultat reçu :", this.result);
+      this.result = full.result;
+      this.positions = full.positions;
+      console.log("✅ Résultat reçu :", this.result);
     } catch (error) {
-        console.error("❌ Erreur d'analyse :", error);
-        this.result = null;
-        alert("Erreur lors de l'analyse du PDF : " + error);
+      console.error("❌ Erreur d'analyse :", error);
+      this.result = null;
+      alert("Erreur lors de l'analyse du PDF : " + error);
     }
-    }
+  }
 
   highlight(champ: string) {
     this.highlightKey = champ;
+
+    if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
+
+    const pos = this.positions[champ];
+    const scale = 1.5;
+
+    const x = pos.x0 * scale;
+    const y = pos.top * scale;
+    const width = (pos.x1 - pos.x0) * scale;
+    const height = (pos.bottom - pos.top) * scale;
+
+    // Re-render + draw
+    this.pdfDoc.getPage(1).then((page: any) => {
+      const viewport = page.getViewport({ scale });
+      page.render({ canvasContext: this.ctx!, viewport }).promise.then(() => {
+        this.ctx!.strokeStyle = 'red';
+        this.ctx!.lineWidth = 2;
+        this.ctx!.strokeRect(x, y, width, height);
+      });
+    });
   }
 
   clearHighlight() {
     this.highlightKey = '';
-  }
+    if (!this.pageRendered || !this.ctx || !this.canvas) return;
 
-  drawHighlight(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(100, 150, 200, 30); // Exemple fictif
+    this.pdfDoc.getPage(1).then((page: any) => {
+      const viewport = page.getViewport({ scale: 1.5 });
+      page.render({ canvasContext: this.ctx!, viewport });
+    });
   }
 }

@@ -29,6 +29,35 @@ def filtrer_reponse_json(reponse):
 
     return None
 
+def trouver_positions_champs(pdf_path, champs_dict):
+    """
+    Pour chaque champ du dictionnaire (ex: {"entreprise": "EDF"}), cherche la position du texte dans le PDF.
+    Retourne un dictionnaire : champ → position sur la première page (x0, x1, top, bottom).
+    """
+    positions = {}
+
+    with pdfplumber.open(pdf_path) as pdf:
+        page = pdf.pages[0]  # pour aller plus loin : boucle sur pages
+
+        words = page.extract_words()
+        for key, valeur in champs_dict.items():
+            if not valeur:
+                continue
+
+            valeur_simplifiee = str(valeur).lower().strip()
+            for mot in words:
+                mot_simplifie = mot['text'].lower().strip()
+                if valeur_simplifiee in mot_simplifie:
+                    positions[key] = {
+                        "x0": mot["x0"],
+                        "x1": mot["x1"],
+                        "top": mot["top"],
+                        "bottom": mot["bottom"]
+                    }
+                    break  # premier match trouvé = suffit
+
+    return positions
+
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF file"""
@@ -123,8 +152,13 @@ def main(pdf_path, model="/workspace/models/mistral-7b-instruct"):
 
     print("\nRéponse du LLM :\n", response)
     print(f"\nTemps de réponse du modèle : {elapsed_time:.3f} secondes")
+    champs = filtrer_reponse_json(response)
+    coords = trouver_positions_champs(pdf_path, champs)
 
-    return filtrer_reponse_json(response)
+    return {
+        "result": champs,
+        "positions": coords
+    }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Processus d'extraction de données depuis une facture PDF.")

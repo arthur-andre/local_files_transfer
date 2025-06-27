@@ -85,3 +85,28 @@ li.active {
   color: #000;
   word-wrap: break-word;
 }
+
+
+.champ-box {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: #f9f9f9;
+  transition: background 0.2s;
+}
+
+.champ-box.active {
+  background: #e8f4ff;
+  border-color: #3399ff;
+}
+
+.champ-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 0.95em;
+}
+
+.champ-value {
+  color: #333;
+}
