@@ -16,11 +16,13 @@ export class AppComponent {
   result: any = null;
   highlightKey: string = '';
   selectedFile: File | null = null;
+  private currentRenderTask: any = null;  // 👈 ici
   pdfDoc: any = null;
   ctx: CanvasRenderingContext2D | null = null;
   canvas: HTMLCanvasElement | null = null;
   pageRendered = false;
   positions: any = {};
+  
 
   readonly champsFixes: string[] = [
     "entreprise",
@@ -75,8 +77,8 @@ export class AppComponent {
         throw new Error(full?.error || 'Erreur inconnue');
       }
 
-      this.result = full.result;
-      this.positions = full.positions;
+      this.result = full.result.result;
+      this.positions = full.result.positions;
       console.log("✅ Résultat reçu :", this.result);
     } catch (error) {
       console.error("❌ Erreur d'analyse :", error);
@@ -90,24 +92,37 @@ export class AppComponent {
 
     if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
 
-    const pos = this.positions[champ];
     const scale = 1.5;
+    const { x0, x1, top, bottom } = this.positions[champ];
 
-    const x = pos.x0 * scale;
-    const y = pos.top * scale;
-    const width = (pos.x1 - pos.x0) * scale;
-    const height = (pos.bottom - pos.top) * scale;
+    const x = x0 * scale;
+    const y = top * scale;
+    const width = (x1 - x0) * scale;
+    const height = (bottom - top) * scale;
 
-    // Re-render + draw
     this.pdfDoc.getPage(1).then((page: any) => {
-      const viewport = page.getViewport({ scale });
-      page.render({ canvasContext: this.ctx!, viewport }).promise.then(() => {
-        this.ctx!.strokeStyle = 'red';
-        this.ctx!.lineWidth = 2;
-        this.ctx!.strokeRect(x, y, width, height);
-      });
+        const viewport = page.getViewport({ scale });
+
+        // Si un rendu précédent est actif, on l’annule
+        if (this.currentRenderTask) {
+        this.currentRenderTask.cancel();
+        }
+
+        // Nouveau rendu
+        const renderTask = page.render({ canvasContext: this.ctx!, viewport });
+        this.currentRenderTask = renderTask;
+
+        renderTask.promise.then(() => {
+        this.ctx!.fillStyle = 'rgba(216, 191, 216, 0.4)'; // Highlight
+        this.ctx!.fillRect(x, y, width, height);
+        }).catch((err: any) => {
+        if (err?.name !== 'RenderingCancelledException') {
+            console.error("Erreur de rendu PDF :", err);
+        }
+        });
     });
-  }
+    }
+
 
   clearHighlight() {
     this.highlightKey = '';
