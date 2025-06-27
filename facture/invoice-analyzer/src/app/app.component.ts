@@ -66,7 +66,7 @@ export class AppComponent {
 //     const full = await response.json();
 //     this.result = full.result;
 //   }
-  async analyzePDF() {
+  async analyzePDF_2() {
     if (!this.selectedFile) return;
 
     console.log("🔍 Simulation d'appel backend…");
@@ -84,17 +84,20 @@ export class AppComponent {
     };
     }
 
-  async analyzePDF_2() {
+  async analyzePDF() {
     if (!this.selectedFile) return;
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
     try {
-        const response = await fetch('https://TON_ENDPOINT_RUNPOD/upload', {
+        const response = await fetch('http://localhost:8000/upload', {
         method: 'POST',
         body: formData
         });
+
+        const result = await response.json();
+        console.log(result);
 
         const full = await response.json();
 
