@@ -128,7 +128,7 @@ def main(pdf_path, model="/workspace/models/mistral-7b-instruct"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Processus d'extraction de données depuis une facture PDF.")
-    parser.add_argument("pdf_path", type=str, default="/workspace/local_files_transfer/facture_client.pdf", help="Chemin vers le fichier PDF")
+    parser.add_argument("--pdf_path", type=str, default="/workspace/local_files_transfer/facture_client.pdf", help="Chemin vers le fichier PDF")
     parser.add_argument("--model", type=str, default="/workspace/models/mistral-7b-instruct", help="Chemin vers le modèle local")
     args = parser.parse_args()
 
