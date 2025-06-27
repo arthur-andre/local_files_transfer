@@ -5,8 +5,30 @@ import requests
 import re
 import argparse
 import time
+import json
 
 warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
+
+
+
+def filtrer_reponse_json(reponse):
+    """
+    Extrait le premier JSON (objet ou liste) valide d'une chaîne, même si le bloc ```json est mal fermé.
+    """
+    # Supprime les éventuels ```json et ``` non fermés proprement
+    reponse = re.sub(r"```(?:json)?", "", reponse).strip()
+
+    # Recherche toutes les sous-chaînes commençant par { ou [
+    candidats = re.findall(r'({[\s\S]*?}|\[[\s\S]*?\])', reponse)
+
+    for bloc in candidats:
+        try:
+            return json.loads(bloc)
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF file"""
@@ -101,6 +123,8 @@ def main(pdf_path, model="/workspace/models/mistral-7b-instruct"):
 
     print("\nRéponse du LLM :\n", response)
     print(f"\nTemps de réponse du modèle : {elapsed_time:.3f} secondes")
+
+    return filtrer_reponse_json(response)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Processus d'extraction de données depuis une facture PDF.")

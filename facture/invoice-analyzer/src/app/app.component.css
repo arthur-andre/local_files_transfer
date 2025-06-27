@@ -1,0 +1,87 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f5f5f5;
+}
+
+input[type="file"] {
+  margin-top: 20px;
+  padding: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+input[type="file"]:hover {
+  border-color: #888;
+}
+
+#pdfCanvas {
+  max-width: 100%;
+  margin-top: 20px;
+  border: 1px solid #999;
+  background-color: #fff;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background-color: #ffffff;
+  border-left: 4px solid #007bff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+li:hover {
+  background-color: #e6f2ff;
+}
+
+
+li.active {
+  background-color: #d0e7ff;
+  font-weight: bold;
+}
+
+.champ-box {
+  border: 1px solid #ddd;
+  border-left: 4px solid #007bff;
+  background-color: #fdfdfd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+  cursor: default;
+}
+
+.champ-box:hover {
+  background-color: #f0f8ff;
+}
+
+.champ-box.active {
+  background-color: #d8ecff;
+  border-left-color: #0056b3;
+}
+
+.champ-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.champ-value {
+  font-size: 1rem;
+  color: #000;
+  word-wrap: break-word;
+}
