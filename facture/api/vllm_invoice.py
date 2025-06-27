@@ -95,7 +95,7 @@ def docling_to_markdown(docling):
 
 def query_vllm(model, prompt):
     """Appel VLLM local via /v1/completions"""
-    url = "http://127.0.0.1:8001/v1/completions"
+    url = "http://127.0.0.1:8010/v1/completions"
     headers = {"Content-Type": "application/json"}
 
     data = {
