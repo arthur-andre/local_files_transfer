@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import tempfile
 import shutil
 import os
+import uvicorn
 from vllm_invoice import main as vllm_main
 
 app = FastAPI()
@@ -11,7 +12,7 @@ app = FastAPI()
 # Autoriser CORS pour ton frontend local
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 🔒 remplace "*" par ton IP ou localhost:3000 en prod
+    allow_origins=["*"],  # 🔒 en prod, utilise ["http://localhost:4200"] par exemple
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,17 +21,14 @@ app.add_middleware(
 @app.post("/upload")
 async def upload_invoice(file: UploadFile = File(...)):
     try:
-        # Sauvegarde temporaire du fichier PDF
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
 
-        # Appelle ton module avec le chemin PDF temporaire
         print(f"[INFO] Fichier reçu : {file.filename}")
-        os.environ["MODEL_PATH"] = "/workspace/models/mistral-7b-instruct"  # Optionnel
+        os.environ["MODEL_PATH"] = "/workspace/models/mistral-7b-instruct"
         response = vllm_main(tmp_path)
 
-        # Nettoyage
         os.remove(tmp_path)
 
         return JSONResponse(content={"success": True, "result": response})
@@ -38,4 +36,5 @@ async def upload_invoice(file: UploadFile = File(...)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
-
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
