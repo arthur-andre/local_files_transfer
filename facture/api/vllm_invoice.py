@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 def filtrer_reponse_json(reponse):
     """
     Extrait le premier JSON (objet ou liste) valide d'une chaîne, même si le bloc ```json est mal fermé.
+    Si montant_TTC et montant_TVA sont présents et non nuls, calcule montant_HT = montant_TTC - montant_TVA.
     """
     # Supprime les éventuels ```json et ``` non fermés proprement
     reponse = re.sub(r"```(?:json)?", "", reponse).strip()
@@ -23,7 +24,18 @@ def filtrer_reponse_json(reponse):
 
     for bloc in candidats:
         try:
-            return json.loads(bloc)
+            data = json.loads(bloc)
+
+            # Vérifie et calcule montant_HT si applicable
+            if isinstance(data, dict):
+                try:
+                    ttc = float(data.get("montant_TTC", None))
+                    tva = float(data.get("montant_TVA", None))
+                    data["montant_HT"] = round(ttc - tva, 2)
+                except (TypeError, ValueError):
+                    data["montant_HT"] = None
+
+            return data
         except json.JSONDecodeError:
             continue
 
@@ -100,7 +112,6 @@ def docling_to_markdown(docling):
         "  \"date\": None\"\",\n"
         "  \"montant_TTC \": None\"\",\n"
         "  \"montant_TVA\": None\"\"\n"
-        "  \"type_de_réglement\": None \"\",\n"
         "}}\n\n"
         "Voici le contenu OCR extrait :\n\n"
     )
