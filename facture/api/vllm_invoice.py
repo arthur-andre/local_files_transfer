@@ -109,6 +109,7 @@ def filtrer_reponse_json(reponse):
 
                 if montant_TTC is not None and montant_TVA is not None:
                     montant_HT = montant_TTC - montant_TVA
+                    print(f"Calcul montant HT: {montant_TTC} - {montant_TVA} = {montant_HT}")
                     data["montant_HT"] = formater_montant(montant_HT, separateur)
                 else:
                     data["montant_HT"] = None
@@ -119,33 +120,70 @@ def filtrer_reponse_json(reponse):
 
     return None
 
+def generer_variantes_montant(val):
+    """
+    Génère les variantes possibles d'un montant à tester dans le PDF.
+    Ex : '2100,0' → ['2100,0', '2100.0', '2100']
+    """
+    if not isinstance(val, str):
+        return []
+
+    val = val.strip().replace(" ", "").replace("€", "")
+    variantes = set()
+
+    if ',' in val:
+        val_point = val.replace(',', '.')
+    else:
+        val_point = val
+
+    try:
+        float_val = float(val_point)
+        base = int(float_val)
+        variantes.add(f"{base}")
+        variantes.add(f"{float_val:.1f}".replace('.', ','))
+        variantes.add(f"{float_val:.1f}")
+    except ValueError:
+        variantes.add(val)
+
+    return list(variantes)
+
 def trouver_positions_champs(pdf_path, champs_dict):
     """
-    Pour chaque champ du dictionnaire (ex: {"entreprise": "EDF"}), cherche la position du texte dans le PDF.
+    Pour chaque champ du dictionnaire (ex: {"entreprise": "EDF"}),
+    cherche la position du texte dans le PDF.
     Retourne un dictionnaire : champ → position sur la première page (x0, x1, top, bottom).
     """
     positions = {}
 
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[0]  # pour aller plus loin : boucle sur pages
-
+        page = pdf.pages[0]  # Pour aller plus loin : boucle sur pages
         words = page.extract_words()
+
         for key, valeur in champs_dict.items():
             if not valeur:
                 continue
 
-            valeur_simplifiee = str(valeur).lower().strip().split()[0] if valeur else ""
+            # Génère les variantes à chercher selon le champ
+            if key in ["montant_TTC", "montant_TVA", "montant_HT"]:
+                valeurs_possibles = generer_variantes_montant(valeur)
+            else:
+                valeurs_possibles = [str(valeur).lower().strip().split()[0]]
+
+            print(f"Recherche pour le champ '{key}': {valeurs_possibles}")
 
             for mot in words:
-                mot_simplifie = mot['text'].lower().strip()
-                if valeur_simplifiee in mot_simplifie:
-                    positions[key] = {
-                        "x0": mot["x0"],
-                        "x1": mot["x1"],
-                        "top": mot["top"],
-                        "bottom": mot["bottom"]
-                    }
-                    break  # premier match trouvé = suffit
+                mot_simplifie = mot['text'].lower().strip().replace(" ", "")
+                for v in valeurs_possibles:
+                    if v in mot_simplifie:
+                        positions[key] = {
+                            "x0": mot["x0"],
+                            "x1": mot["x1"],
+                            "top": mot["top"],
+                            "bottom": mot["bottom"]
+                        }
+                        break
+                if key in positions:
+                    break  # premier match suffit
 
     return positions
 
