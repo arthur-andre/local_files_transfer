@@ -108,6 +108,9 @@ def main():
     except Exception as e:
         resultat_sql = f"[ERREUR SQL] {e}"
 
+    console.print("\n[bold cyan]📊 Requête SQL générée :[/bold cyan]\n")
+
+    
     reponse = reponse_finale(llm, question, requete_sql, resultat_sql)
     afficher_reponse_llm_brute(reponse)
 
