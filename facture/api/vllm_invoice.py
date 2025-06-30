@@ -6,6 +6,7 @@ import re
 import argparse
 import time
 import json
+from decimal import Decimal, InvalidOperation
 
 warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 
@@ -56,13 +57,14 @@ def filtrer_reponse_json_old(reponse):
 
 
 def nettoyer_montant(val):
-    if isinstance(val, (int, float)):
-        return float(val), '.'  # Valeur numérique déjà propre
+    if isinstance(val, (int, float, Decimal)):
+        return Decimal(str(val)), '.'
 
     if not isinstance(val, str):
         return None, None
 
     val_nettoye = re.sub(r"[^\d,\.]", "", val)
+
     if val_nettoye.count(',') == 1 and (val_nettoye.count('.') == 0 or val_nettoye.find(',') > val_nettoye.find('.')):
         val_converti = val_nettoye.replace(',', '.')
         separateur = ','
@@ -71,25 +73,19 @@ def nettoyer_montant(val):
         separateur = '.'
 
     try:
-        return float(val_converti), separateur
-    except ValueError:
+        return Decimal(val_converti), separateur
+    except InvalidOperation:
         print(f"[WARNING] Impossible de parser '{val}' → '{val_converti}'")
         return None, None
 
-def formater_montant(val_float, separateur):
-    """
-    Formate un float en chaîne avec un seul chiffre après la virgule ou le point.
-    """
-    if val_float is None or separateur not in {',', '.'}:
+def formater_montant(val_decimal, separateur):
+    if val_decimal is None or separateur not in {',', '.'}:
         return None
-    s = f"{val_float:.1f}"
+    # Conversion directe en string sans arrondi, avec séparateur harmonisé
+    s = format(val_decimal.normalize(), 'f')  # remove exponentials, keep all decimals
     return s.replace('.', separateur)
 
 def filtrer_reponse_json(reponse):
-    """
-    Extrait le premier JSON valide d'une chaîne.
-    Nettoie TTC et TVA, ajoute HT au bon format, avec 1 chiffre après séparateur décimal.
-    """
     reponse = re.sub(r"```(?:json)?", "", reponse).strip()
     candidats = re.findall(r'({[\s\S]*?}|\[[\s\S]*?\])', reponse)
 
@@ -100,24 +96,15 @@ def filtrer_reponse_json(reponse):
             if isinstance(data, dict):
                 montant_TTC, sep_TTC = nettoyer_montant(data.get("montant_TTC", None))
                 montant_TVA, sep_TVA = nettoyer_montant(data.get("montant_TVA", None))
-
-                # Déterminer le séparateur à utiliser pour HT
                 separateur = sep_TTC or sep_TVA
 
                 if montant_TTC is not None:
                     data["montant_TTC"] = formater_montant(montant_TTC, separateur)
                 if montant_TVA is not None:
                     data["montant_TVA"] = formater_montant(montant_TVA, separateur)
-                
 
-                print(f"Montant TTC formaté : {data.get('montant_TTC')}, Montant TVA formaté : {data.get('montant_TVA')}")
-                print('TTC none ?', montant_TTC is None)
-                print('TVA none ?', montant_TVA is None)
-                print('soustraction TTC - TVA :', float(montant_TTC) - float(montant_TVA))
-                print(f"Séparateur utilisé : {separateur}")
                 if montant_TTC is not None and montant_TVA is not None:
                     montant_HT = montant_TTC - montant_TVA
-                    print(f"Calcul montant HT: {montant_TTC} - {montant_TVA} = {montant_HT}")
                     data["montant_HT"] = formater_montant(montant_HT, separateur)
                 else:
                     data["montant_HT"] = None
@@ -147,8 +134,9 @@ def generer_variantes_montant(val):
 
     try:
         float_val = float(val_point)
-        base = int(float_val)
-        variantes.add(f"{base}")
+        #ajouter base si c'est un montant avec décimales à 0
+        if float_val.is_integer():
+            variantes.add(f"{int(float_val)}")
         variantes.add(f"{float_val:.1f}".replace('.', ','))
         variantes.add(f"{float_val:.1f}")
     except ValueError:
@@ -164,8 +152,6 @@ def trouver_positions_champs(pdf_path, champs_dict):
     """
     positions = {}
 
-    print("champs_dict:", champs_dict)
-
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]  # Pour aller plus loin : boucle sur pages
         words = page.extract_words()
@@ -180,7 +166,7 @@ def trouver_positions_champs(pdf_path, champs_dict):
             else:
                 valeurs_possibles = [str(valeur).lower().strip().split()[0]]
 
-            print(f"Recherche pour le champ '{key}': {valeurs_possibles}")
+            print(f"Recherche de '{key}' avec variantes : {valeurs_possibles}")
 
             for mot in words:
                 mot_simplifie = mot['text'].lower().strip().replace(" ", "")
