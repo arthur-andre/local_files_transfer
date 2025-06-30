@@ -23,6 +23,7 @@ export class AppComponent {
   pageRendered = false;
   positions: Record<string, any> = {};
   private currentRenderTask: any = null;
+  fixedHighlightKey: string = '';
 
   readonly champsFixes: string[] = [
     "entreprise",
@@ -116,7 +117,7 @@ export class AppComponent {
       this.currentRenderTask = renderTask;
 
       renderTask.promise.then(() => {
-        this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)'; // Jaune doux
+        this.ctx!.fillStyle = 'rgba(255, 99, 132, 0.35)'; // Rouge doux semi-transparent
         console.log(`🔍 Mise en évidence du champ "${champ}" à (${x}, ${y}) avec une taille de (${width}x${height})`);
         this.ctx!.fillRect(x, y, width, height);
       }).catch((err: any) => {
