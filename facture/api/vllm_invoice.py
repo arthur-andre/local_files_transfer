@@ -56,22 +56,20 @@ def filtrer_reponse_json_old(reponse):
 
 
 def nettoyer_montant(val):
-    """
-    Nettoie un montant en supprimant les caractères non numériques sauf ',' et '.'.
-    Retourne (float, séparateur) si possible, sinon (None, None)
-    """
     if not isinstance(val, str):
         return None, None
     val_nettoye = re.sub(r"[^\d,\.]", "", val)
     if val_nettoye.count(',') == 1 and (val_nettoye.count('.') == 0 or val_nettoye.find(',') > val_nettoye.find('.')):
-        separateur = ','
         val_converti = val_nettoye.replace(',', '.')
+        separateur = ','
     else:
-        separateur = '.'
         val_converti = val_nettoye
+        separateur = '.'
+
     try:
         return float(val_converti), separateur
     except ValueError:
+        print(f"[WARNING] Impossible de parser '{val}' → '{val_converti}'")
         return None, None
 
 def formater_montant(val_float, separateur):
@@ -159,6 +157,8 @@ def trouver_positions_champs(pdf_path, champs_dict):
     Retourne un dictionnaire : champ → position sur la première page (x0, x1, top, bottom).
     """
     positions = {}
+
+    print("champs_dict:", champs_dict)
 
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]  # Pour aller plus loin : boucle sur pages
