@@ -11,31 +11,43 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 
 
 
+def nettoyer_montant(val):
+    """
+    Nettoie un montant en supprimant les caractères non numériques sauf ',' et '.'.
+    Convertit une chaîne du type '2 100,00 €' ou '350,00' en float.
+    """
+    if not isinstance(val, str):
+        return None
+    # Garde uniquement chiffres, virgule, point
+    val = re.sub(r"[^\d,\.]", "", val)
+    # Si le format est européen avec virgule comme séparateur décimal
+    if val.count(',') == 1 and (val.count('.') == 0 or val.find(',') > val.find('.')):
+        val = val.replace(',', '.')
+    try:
+        return float(val)
+    except ValueError:
+        return None
+
 def filtrer_reponse_json(reponse):
     """
     Extrait le premier JSON (objet ou liste) valide d'une chaîne, même si le bloc ```json est mal fermé.
-    Si montant_TTC et montant_TVA sont présents et non nuls, calcule montant_HT = montant_TTC - montant_TVA.
+    Nettoie les montants TTC et TVA si présents, et ajoute montant_HT = montant_TTC - montant_TVA si possible.
     """
-    # Supprime les éventuels ```json et ``` non fermés proprement
     reponse = re.sub(r"```(?:json)?", "", reponse).strip()
-
-    # Recherche toutes les sous-chaînes commençant par { ou [
     candidats = re.findall(r'({[\s\S]*?}|\[[\s\S]*?\])', reponse)
 
     for bloc in candidats:
         try:
             data = json.loads(bloc)
 
-            # Vérifie et calcule montant_HT si applicable
             if isinstance(data, dict):
-                try:
-                    ttc = float(data.get("montant_TTC", None))
-                    tva = float(data.get("montant_TVA", None))
+                ttc = nettoyer_montant(data.get("montant_TTC", None))
+                tva = nettoyer_montant(data.get("montant_TVA", None))
+                if ttc is not None and tva is not None:
                     data["montant_HT"] = round(ttc - tva, 2)
-                except (TypeError, ValueError):
+                else:
                     data["montant_HT"] = None
 
-            print("JSON extrait :", data)
             return data
         except json.JSONDecodeError:
             continue
