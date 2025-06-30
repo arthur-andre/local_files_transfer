@@ -81,8 +81,8 @@ def nettoyer_montant(val):
 def formater_montant(val_decimal, separateur):
     if val_decimal is None or separateur not in {',', '.'}:
         return None
-    # Conversion directe en string sans arrondi, avec séparateur harmonisé
-    s = format(val_decimal.normalize(), 'f')  # remove exponentials, keep all decimals
+    s = str(val_decimal)  # préserve les décimales exactes, même inutiles
+    print(f"[DEBUG] Formattage du montant '{s}' avec séparateur '{separateur}'")
     return s.replace('.', separateur)
 
 def filtrer_reponse_json(reponse):
