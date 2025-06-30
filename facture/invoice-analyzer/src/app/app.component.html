@@ -1,26 +1,71 @@
-<div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">
-  <!-- Zone gauche : upload + PDF -->
-  <div style="flex: 2; min-width: 500px;">
-    <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
-
-    <button (click)="analyzePDF()" [disabled]="!selectedFile" style="margin-top: 10px;">
-      📤 Analyser la facture
-    </button>
-
-    <canvas id="pdfCanvas" style="border: 1px solid #ccc; margin-top: 20px;"></canvas>
-  </div>
-
-  <!-- Zone droite : champs extraits -->
-  <div style="flex: 1; min-width: 300px;">
-    <h3 style="margin-bottom: 10px;">📑 Informations extraites</h3>
-
-    <div *ngFor="let champ of champsFixes"
-         [class.active]="highlightKey === champ"
-         (mouseenter)="highlight(champ)"
-         (mouseleave)="clearHighlight()"
-         class="champ-box">
-      <div class="champ-label">{{ champ }}</div>
-      <div class="champ-value">{{ result?.[champ] || '...' }}</div>
+<div class="top-banner">
+  <div class="left-section">
+  <img src="assets/logo.png" alt="Logo iG" class="logo-img" />
+    <div class="year-breadcrumb">
+      <div class="year-badge">
+        <strong>2025</strong> <span class="status">Ouvert</span>
+      </div>
+      <div class="breadcrumb">
+        🏛 Association des Lilas &gt; ETO1 Établissement 01 &gt; SE01 Section 01
+      </div>
     </div>
   </div>
+  <div class="icons">
+    ⚡ ⚙️
+  </div>
 </div>
+
+<div class="layout">
+  <div class="sidebar">
+
+    <div class="sidebar-icon">
+      🧭
+    </div>
+
+    <div class="sidebar-icon active">
+      🔍
+    </div>
+
+    <div class="sidebar-icon">📸</div>
+    <div class="sidebar-icon">📋</div>
+    <div class="sidebar-icon">📊</div>
+    <div class="sidebar-icon">📅</div>
+    <div class="sidebar-icon">🏛</div>
+    <div class="sidebar-icon">📆</div>
+    <div class="sidebar-icon">🔁</div>
+    <div class="sidebar-icon">💼</div>
+    <div class="sidebar-icon">⬇️</div>
+  </div>
+
+  <div class="content">
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">
+    <!-- Zone gauche : upload + PDF -->
+    <div style="flex: 2; min-width: 500px;">
+      <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
+
+      <button (click)="analyzePDF()" [disabled]="!selectedFile" style="margin-top: 10px;">
+        📤 Analyser la facture
+      </button>
+
+      <canvas id="pdfCanvas" style="border: 1px solid #ccc; margin-top: 20px;"></canvas>
+    </div>
+
+    <!-- Zone droite : champs extraits -->
+    <div style="flex: 1; min-width: 300px;">
+      <h3 style="margin-bottom: 10px;">📑 Informations extraites</h3>
+
+      <div *ngFor="let champ of champsFixes"
+          [class.active]="highlightKey === champ"
+          (mouseenter)="highlight(champ)"
+          (mouseleave)="clearHighlight()"
+          class="champ-box">
+        <div class="champ-label">{{ champ }}</div>
+        <div class="champ-value">{{ result?.[champ] || '...' }}</div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+
+

@@ -16,13 +16,13 @@ export class AppComponent {
   result: any = null;
   highlightKey: string = '';
   selectedFile: File | null = null;
-  private currentRenderTask: any = null;  // 👈 ici
+
   pdfDoc: any = null;
   ctx: CanvasRenderingContext2D | null = null;
   canvas: HTMLCanvasElement | null = null;
   pageRendered = false;
-  positions: any = {};
-  
+  positions: Record<string, any> = {};
+  private currentRenderTask: any = null;
 
   readonly champsFixes: string[] = [
     "entreprise",
@@ -34,6 +34,8 @@ export class AppComponent {
     "montant_Hors_Taxe",
     "montant_TVA"
   ];
+
+  readonly scale = 0.95;
 
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0] || null;
@@ -47,7 +49,8 @@ export class AppComponent {
 
         this.canvas = document.getElementById('pdfCanvas') as HTMLCanvasElement;
         this.ctx = this.canvas.getContext('2d');
-        const viewport = page.getViewport({ scale: 1.5 });
+
+        const viewport = page.getViewport({ scale: this.scale });
 
         this.canvas.height = viewport.height;
         this.canvas.width = viewport.width;
@@ -92,44 +95,40 @@ export class AppComponent {
 
     if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
 
-    const scale = 1.5;
     const { x0, x1, top, bottom } = this.positions[champ];
 
-    const x = x0 * scale;
-    const y = top * scale;
-    const width = (x1 - x0) * scale;
-    const height = (bottom - top) * scale;
+    const x = x0 * this.scale;
+    const y = top * this.scale;
+    const width = (x1 - x0) * this.scale;
+    const height = (bottom - top) * this.scale;
 
     this.pdfDoc.getPage(1).then((page: any) => {
-        const viewport = page.getViewport({ scale });
+      const viewport = page.getViewport({ scale: this.scale });
 
-        // Si un rendu précédent est actif, on l’annule
-        if (this.currentRenderTask) {
+      if (this.currentRenderTask) {
         this.currentRenderTask.cancel();
-        }
+      }
 
-        // Nouveau rendu
-        const renderTask = page.render({ canvasContext: this.ctx!, viewport });
-        this.currentRenderTask = renderTask;
+      const renderTask = page.render({ canvasContext: this.ctx!, viewport });
+      this.currentRenderTask = renderTask;
 
-        renderTask.promise.then(() => {
-        this.ctx!.fillStyle = 'rgba(216, 191, 216, 0.4)'; // Highlight
+      renderTask.promise.then(() => {
+        this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)'; // Jaune doux
         this.ctx!.fillRect(x, y, width, height);
-        }).catch((err: any) => {
+      }).catch((err: any) => {
         if (err?.name !== 'RenderingCancelledException') {
-            console.error("Erreur de rendu PDF :", err);
+          console.error("Erreur de rendu PDF :", err);
         }
-        });
+      });
     });
-    }
-
+  }
 
   clearHighlight() {
     this.highlightKey = '';
     if (!this.pageRendered || !this.ctx || !this.canvas) return;
 
     this.pdfDoc.getPage(1).then((page: any) => {
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: this.scale });
       page.render({ canvasContext: this.ctx!, viewport });
     });
   }
