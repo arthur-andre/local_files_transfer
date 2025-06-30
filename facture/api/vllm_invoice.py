@@ -82,8 +82,9 @@ def formater_montant(val_decimal, separateur):
     if val_decimal is None or separateur not in {',', '.'}:
         return None
     s = str(val_decimal)  # préserve les décimales exactes, même inutiles
+    s.replace('.', separateur)
     print(f"[DEBUG] Formattage du montant '{s}' avec séparateur '{separateur}'")
-    return s.replace('.', separateur)
+    return s 
 
 def filtrer_reponse_json(reponse):
     reponse = re.sub(r"```(?:json)?", "", reponse).strip()
