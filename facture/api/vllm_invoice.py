@@ -72,9 +72,11 @@ def trouver_positions_champs(pdf_path, champs_dict):
                 continue
 
             valeur_simplifiee = str(valeur).lower().strip().split()[0] if valeur else ""
+            print(f"Recherche de '{valeur_simplifiee}' pour le champ '{key}'")
 
             for mot in words:
                 mot_simplifie = mot['text'].lower().strip()
+                print("mot_simplifie:", mot_simplifie)
                 if valeur_simplifiee in mot_simplifie:
                     positions[key] = {
                         "x0": mot["x0"],
