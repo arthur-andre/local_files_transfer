@@ -109,6 +109,8 @@ def filtrer_reponse_json(reponse):
                 
 
                 print(f"Montant TTC formaté : {data.get('montant_TTC')}, Montant TVA formaté : {data.get('montant_TVA')}")
+                print('soustraction TTC - TVA :', montant_TTC - montant_TVA)
+                print(f"Séparateur utilisé : {separateur}")
                 if montant_TTC is not None and montant_TVA is not None:
                     montant_HT = montant_TTC - montant_TVA
                     print(f"Calcul montant HT: {montant_TTC} - {montant_TVA} = {montant_HT}")
