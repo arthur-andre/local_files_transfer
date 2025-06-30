@@ -85,7 +85,15 @@ def main():
     llm = charger_llm(api_base=api_base, model_name=modele)
     agent = construire_agent(db=db, llm=llm)
 
-    agent_output = agent.invoke(question)
+    schema_info = db.get_table_info()
+    question_modifiee = f"""Voici la structure de la base de données :
+
+    {schema_info}
+
+    Réponds à cette question en utilisant uniquement les noms de tables et colonnes présents : {question}
+    """
+
+    agent_output = agent.invoke(question_modifiee)
     texte_brut = agent_output.get("output", "") if isinstance(agent_output, dict) else str(agent_output)
     requete_sql = extraire_sql_depuis_texte(texte_brut)
 
