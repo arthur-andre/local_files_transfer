@@ -42,7 +42,9 @@ def filtrer_reponse_json(reponse):
 
             if isinstance(data, dict):
                 ttc = nettoyer_montant(data.get("montant_TTC", None))
+                data["montant_TTC"] = ttc  # Assure que c'est un float ou None
                 tva = nettoyer_montant(data.get("montant_TVA", None))
+                data["montant_TVA"] = tva  # Assure que c'est un float ou None
                 if ttc is not None and tva is not None:
                     data["montant_HT"] = round(ttc - tva, 2)
                 else:
@@ -69,7 +71,8 @@ def trouver_positions_champs(pdf_path, champs_dict):
             if not valeur:
                 continue
 
-            valeur_simplifiee = str(valeur).lower().strip()
+            valeur_simplifiee = str(valeur).lower().strip().split()[0] if valeur else ""
+
             for mot in words:
                 mot_simplifie = mot['text'].lower().strip()
                 if valeur_simplifiee in mot_simplifie:
