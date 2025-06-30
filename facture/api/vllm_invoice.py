@@ -119,8 +119,11 @@ def filtrer_reponse_json(reponse):
 
 def generer_variantes_montant(val):
     """
-    Génère les variantes possibles d'un montant à tester dans le PDF.
-    Ex : '2100,0' → ['2100,0', '2100.0', '2100']
+    Génère les variantes possibles d'un montant à tester dans le PDF :
+    - tel quel (nettoyé)
+    - avec virgule comme séparateur décimal
+    - avec point
+    - sans décimale si == 0
     """
     if not isinstance(val, str):
         return []
@@ -128,19 +131,23 @@ def generer_variantes_montant(val):
     val = val.strip().replace(" ", "").replace("€", "")
     variantes = set()
 
+    # Choix du séparateur
     if ',' in val:
         val_point = val.replace(',', '.')
     else:
         val_point = val
 
     try:
-        float_val = float(val_point)
-        #ajouter base si c'est un montant avec décimales à 0
-        if float_val.is_integer():
-            variantes.add(f"{int(float_val)}")
-        variantes.add(f"{float_val:.1f}".replace('.', ','))
-        variantes.add(f"{float_val:.1f}")
-    except ValueError:
+        d = Decimal(val_point)
+        str_dot = str(d)
+        str_comma = str_dot.replace('.', ',')
+
+        variantes.add(str_dot)
+        variantes.add(str_comma)
+
+        if d == d.to_integral():  # si décimales nulles
+            variantes.add(str(int(d)))
+    except InvalidOperation:
         variantes.add(val)
 
     return list(variantes)
