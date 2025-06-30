@@ -56,8 +56,12 @@ def filtrer_reponse_json_old(reponse):
 
 
 def nettoyer_montant(val):
+    if isinstance(val, (int, float)):
+        return float(val), '.'  # Valeur numérique déjà propre
+
     if not isinstance(val, str):
         return None, None
+
     val_nettoye = re.sub(r"[^\d,\.]", "", val)
     if val_nettoye.count(',') == 1 and (val_nettoye.count('.') == 0 or val_nettoye.find(',') > val_nettoye.find('.')):
         val_converti = val_nettoye.replace(',', '.')
