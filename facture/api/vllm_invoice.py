@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 
 
 
-def nettoyer_montant(val):
+def nettoyer_montant_old(val):
     """
     Nettoie un montant en supprimant les caractères non numériques sauf ',' et '.'.
     Convertit une chaîne du type '2 100,00 €' ou '350,00' en float.
@@ -28,7 +28,7 @@ def nettoyer_montant(val):
     except ValueError:
         return None
 
-def filtrer_reponse_json(reponse):
+def filtrer_reponse_json_old(reponse):
     """
     Extrait le premier JSON (objet ou liste) valide d'une chaîne, même si le bloc ```json est mal fermé.
     Nettoie les montants TTC et TVA si présents, et ajoute montant_HT = montant_TTC - montant_TVA si possible.
@@ -41,12 +41,75 @@ def filtrer_reponse_json(reponse):
             data = json.loads(bloc)
 
             if isinstance(data, dict):
-                ttc = nettoyer_montant(data.get("montant_TTC", None))
-                data["montant_TTC"] = ttc  # Assure que c'est un float ou None
-                tva = nettoyer_montant(data.get("montant_TVA", None))
-                data["montant_TVA"] = tva  # Assure que c'est un float ou None
+                ttc = nettoyer_montant_old(data.get("montant_TTC", None))
+                tva = nettoyer_montant_old(data.get("montant_TVA", None))
                 if ttc is not None and tva is not None:
                     data["montant_HT"] = round(ttc - tva, 2)
+                else:
+                    data["montant_HT"] = None
+
+            return data
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
+def nettoyer_montant(val):
+    """
+    Nettoie un montant en supprimant les caractères non numériques sauf ',' et '.'.
+    Retourne (float, séparateur) si possible, sinon (None, None)
+    """
+    if not isinstance(val, str):
+        return None, None
+    val_nettoye = re.sub(r"[^\d,\.]", "", val)
+    if val_nettoye.count(',') == 1 and (val_nettoye.count('.') == 0 or val_nettoye.find(',') > val_nettoye.find('.')):
+        separateur = ','
+        val_converti = val_nettoye.replace(',', '.')
+    else:
+        separateur = '.'
+        val_converti = val_nettoye
+    try:
+        return float(val_converti), separateur
+    except ValueError:
+        return None, None
+
+def formater_montant(val_float, separateur):
+    """
+    Formate un float en chaîne avec un seul chiffre après la virgule ou le point.
+    """
+    if val_float is None or separateur not in {',', '.'}:
+        return None
+    s = f"{val_float:.1f}"
+    return s.replace('.', separateur)
+
+def filtrer_reponse_json(reponse):
+    """
+    Extrait le premier JSON valide d'une chaîne.
+    Nettoie TTC et TVA, ajoute HT au bon format, avec 1 chiffre après séparateur décimal.
+    """
+    reponse = re.sub(r"```(?:json)?", "", reponse).strip()
+    candidats = re.findall(r'({[\s\S]*?}|\[[\s\S]*?\])', reponse)
+
+    for bloc in candidats:
+        try:
+            data = json.loads(bloc)
+
+            if isinstance(data, dict):
+                montant_TTC, sep_TTC = nettoyer_montant(data.get("montant_TTC", None))
+                montant_TVA, sep_TVA = nettoyer_montant(data.get("montant_TVA", None))
+
+                # Déterminer le séparateur à utiliser pour HT
+                separateur = sep_TTC or sep_TVA
+
+                if montant_TTC is not None:
+                    data["montant_TTC"] = formater_montant(montant_TTC, separateur)
+                if montant_TVA is not None:
+                    data["montant_TVA"] = formater_montant(montant_TVA, separateur)
+
+                if montant_TTC is not None and montant_TVA is not None:
+                    montant_HT = montant_TTC - montant_TVA
+                    data["montant_HT"] = formater_montant(montant_HT, separateur)
                 else:
                     data["montant_HT"] = None
 
@@ -98,8 +161,8 @@ def extract_text_from_pdf(pdf_path):
     return full_text
 
 def enlever_caracteres_speciaux(texte):
-    """Nettoyage des caractères spéciaux"""
-    pattern = r'[^a-zA-Z0-9\s€$.,:;!?%()\-_/]'
+    """Nettoyage des caractères spéciaux, en conservant les accents"""
+    pattern = r"[^a-zA-Z0-9\s€$.,:;!?%()\-_/àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ]"
     return re.sub(pattern, '', texte)
 
 def convert_to_docling(text):

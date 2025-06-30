@@ -85,6 +85,7 @@ export class AppComponent {
       this.result = full.result.result;
       this.positions = full.result.positions;
       console.log("✅ Résultat reçu :", this.result);
+      console.log("📍 Positions des champs :", this.positions);
     } catch (error) {
       console.error("❌ Erreur d'analyse :", error);
       this.result = null;
@@ -116,6 +117,7 @@ export class AppComponent {
 
       renderTask.promise.then(() => {
         this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)'; // Jaune doux
+        console.log(`🔍 Mise en évidence du champ "${champ}" à (${x}, ${y}) avec une taille de (${width}x${height})`);
         this.ctx!.fillRect(x, y, width, height);
       }).catch((err: any) => {
         if (err?.name !== 'RenderingCancelledException') {
