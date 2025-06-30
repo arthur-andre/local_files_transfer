@@ -69,7 +69,7 @@ def main():
     chemin_db = args.db
     question = args.question
 
-    api_base = "http://localhost:8000/v1"
+    api_base = "http://localhost:8010/v1"
     modele = "/workspace/models/mistral-7b-instruct"
 
     db = charger_base_sqlite(chemin_db)

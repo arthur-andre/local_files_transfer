@@ -24,6 +24,7 @@ export class AppComponent {
   positions: Record<string, any> = {};
   private currentRenderTask: any = null;
   fixedHighlightKey: string = '';
+  loading: boolean = false;
 
   readonly champsFixes: string[] = [
     "entreprise",
@@ -38,12 +39,32 @@ export class AppComponent {
     "montant_TTC"
   ];
 
+  readonly champLabels: Record<string, string> = {
+    entreprise: "🏢 Entreprise",
+    téléphone: "📞 Téléphone",
+    adresse: "📍 Adresse",
+    tva_intracommunautaire: "🧾 TVA intracommunautaire",
+    "SIRET/SIREN": "🆔 SIRET / SIREN",
+    numero_facture_ou_piece: "📄 Numéro de facture",
+    date: "📅 Date",
+    montant_HT: "💰 Montant HT",
+    montant_TVA: "💸 Montant TVA",
+    montant_TTC: "💵 Montant TTC"
+  };
+
   readonly scale = 0.95;
 
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0] || null;
 
     if (this.selectedFile) {
+      this.pageRendered = false;
+      this.result = null;
+      this.positions = {};
+      this.highlightKey = '';
+      this.fixedHighlightKey = '';
+
+
       const reader = new FileReader();
       reader.onload = async () => {
         const typedarray = new Uint8Array(reader.result as ArrayBuffer);
@@ -67,6 +88,7 @@ export class AppComponent {
 
   async analyzePDF() {
     if (!this.selectedFile) return;
+    this.loading = true;
 
     const formData = new FormData();
     formData.append('file', this.selectedFile);
@@ -92,9 +114,12 @@ export class AppComponent {
       this.result = null;
       alert("Erreur lors de l'analyse du PDF : " + error);
     }
+    this.loading = false;
+    this.highlightKey = ''; // Réinitialise la clé de surbrillance après l'analyse
   }
 
   highlight(champ: string) {
+    if (this.fixedHighlightKey) return;
     this.highlightKey = champ;
 
     if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
@@ -128,7 +153,59 @@ export class AppComponent {
     });
   }
 
+  private _drawHighlightFor(champ: string) {
+    if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
+
+    const { x0, x1, top, bottom } = this.positions[champ];
+
+    const x = x0 * this.scale;
+    const y = top * this.scale;
+    const width = (x1 - x0) * this.scale;
+    const height = (bottom - top) * this.scale;
+
+    this.pdfDoc.getPage(1).then((page: any) => {
+      const viewport = page.getViewport({ scale: this.scale });
+
+      if (this.currentRenderTask) this.currentRenderTask.cancel();
+
+      const renderTask = page.render({ canvasContext: this.ctx!, viewport });
+      this.currentRenderTask = renderTask;
+
+      renderTask.promise.then(() => {
+        this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)';
+        this.ctx!.fillRect(x, y, width, height);
+      }).catch((err: any) => {
+        if (err?.name !== 'RenderingCancelledException') {
+          console.error("Erreur de rendu PDF :", err);
+        }
+      });
+    });
+  }
+
+  private _redrawPage() {
+    this.pdfDoc.getPage(1).then((page: any) => {
+      const viewport = page.getViewport({ scale: this.scale });
+      page.render({ canvasContext: this.ctx!, viewport });
+    });
+  }
+
+
+  toggleFixedHighlight(champ: string) {
+    if (this.fixedHighlightKey === champ) {
+      // Désactive
+      this.fixedHighlightKey = '';
+      this.highlightKey = '';
+      this._redrawPage();
+    } else {
+      // Active
+      this.fixedHighlightKey = champ;
+      this.highlightKey = champ;
+      this._drawHighlightFor(champ);
+    }
+  }
+
   clearHighlight() {
+    if (this.fixedHighlightKey) return;
     this.highlightKey = '';
     if (!this.pageRendered || !this.ctx || !this.canvas) return;
 

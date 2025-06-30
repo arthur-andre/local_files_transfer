@@ -43,9 +43,30 @@
     <div style="flex: 2; min-width: 500px;">
       <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
 
-      <button (click)="analyzePDF()" [disabled]="!selectedFile" style="margin-top: 10px;">
+      <div *ngIf="loading" style="margin-top: 10px; color: #6a5acd; font-weight: bold;">
+        🔄 Analyse en cours...
+      </div>
+
+      <button 
+        (click)="analyzePDF()" 
+        [disabled]="!selectedFile"
+        [style.opacity]="selectedFile ? '1' : '0.6'"
+        style="
+          margin-top: 10px;
+          background-color: #6a5acd;
+          color: white;
+          padding: 10px 16px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 14px;
+          transition: background-color 0.3s ease;
+        "
+      >
         📤 Analyser la facture
       </button>
+
 
       <canvas id="pdfCanvas" style="border: 1px solid #ccc; margin-top: 20px;"></canvas>
     </div>
@@ -55,11 +76,12 @@
       <h3 style="margin-bottom: 10px;">📑 Informations extraites</h3>
 
       <div *ngFor="let champ of champsFixes"
-          [class.active]="highlightKey === champ"
+          [class.active]="highlightKey === champ || fixedHighlightKey === champ"
           (mouseenter)="highlight(champ)"
           (mouseleave)="clearHighlight()"
+          (click)="toggleFixedHighlight(champ)"
           class="champ-box">
-        <div class="champ-label">{{ champ }}</div>
+        <div class="champ-label">{{ champLabels[champ] || champ }}</div>
         <div class="champ-value">{{ result?.[champ] || '...' }}</div>
       </div>
     </div>
