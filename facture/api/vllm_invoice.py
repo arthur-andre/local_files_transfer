@@ -106,7 +106,9 @@ def filtrer_reponse_json(reponse):
                     data["montant_TTC"] = formater_montant(montant_TTC, separateur)
                 if montant_TVA is not None:
                     data["montant_TVA"] = formater_montant(montant_TVA, separateur)
+                
 
+                print(f"Montant TTC formaté : {data.get('montant_TTC')}, Montant TVA formaté : {data.get('montant_TVA')}")
                 if montant_TTC is not None and montant_TVA is not None:
                     montant_HT = montant_TTC - montant_TVA
                     print(f"Calcul montant HT: {montant_TTC} - {montant_TVA} = {montant_HT}")
@@ -116,6 +118,7 @@ def filtrer_reponse_json(reponse):
 
             return data
         except json.JSONDecodeError:
+            print(f"Erreur de décodage JSON pour le bloc : {bloc}")
             continue
 
     return None
