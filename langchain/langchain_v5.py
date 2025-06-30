@@ -93,6 +93,9 @@ def main():
     Réponds à cette question en utilisant uniquement les noms de tables et colonnes présents : {question}
     """
 
+    print("==== PROMPT UTILISÉ ====")
+    print(question_modifiee)
+
     agent_output = agent.invoke(question_modifiee)
     texte_brut = agent_output.get("output", "") if isinstance(agent_output, dict) else str(agent_output)
     requete_sql = extraire_sql_depuis_texte(texte_brut)
