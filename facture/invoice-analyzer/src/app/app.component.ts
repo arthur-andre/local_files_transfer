@@ -26,13 +26,15 @@ export class AppComponent {
 
   readonly champsFixes: string[] = [
     "entreprise",
+    "téléphone",
+    "adresse",
     "tva_intracommunautaire",
     "SIRET/SIREN",
     "numero_facture_ou_piece",
     "date",
-    "montant_TTC",
-    "montant_Hors_Taxe",
-    "montant_TVA"
+    "montant_HT",
+    "montant_TVA",
+    "montant_TTC"
   ];
 
   readonly scale = 0.95;

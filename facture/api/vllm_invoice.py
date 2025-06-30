@@ -35,6 +35,7 @@ def filtrer_reponse_json(reponse):
                 except (TypeError, ValueError):
                     data["montant_HT"] = None
 
+            print("JSON extrait :", data)
             return data
         except json.JSONDecodeError:
             continue
