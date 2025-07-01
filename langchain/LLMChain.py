@@ -74,6 +74,9 @@ En te basant uniquement sur cette structure, écris une requête SQL pour répon
 {question}
 
 Retourne uniquement la requête SQL entre balises ```sql ... ```
+
+Toutes les comparaisons de chaînes (dans les clauses WHERE) doivent être insensibles à la casse.
+Utilise UPPER(colonne) = UPPER('valeur')
 """
     )
     chaine_sql = LLMChain(llm=llm, prompt=prompt)
