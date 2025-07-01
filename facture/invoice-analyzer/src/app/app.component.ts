@@ -124,13 +124,6 @@ export class AppComponent {
 
     if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
 
-    const { x0, x1, top, bottom } = this.positions[champ];
-
-    const x = x0 * this.scale;
-    const y = top * this.scale;
-    const width = (x1 - x0) * this.scale;
-    const height = (bottom - top) * this.scale;
-
     this.pdfDoc.getPage(1).then((page: any) => {
       const viewport = page.getViewport({ scale: this.scale });
 
@@ -142,9 +135,17 @@ export class AppComponent {
       this.currentRenderTask = renderTask;
 
       renderTask.promise.then(() => {
-        this.ctx!.fillStyle = 'rgba(255, 99, 132, 0.35)'; // Rouge doux semi-transparent
-        console.log(`🔍 Mise en évidence du champ "${champ}" à (${x}, ${y}) avec une taille de (${width}x${height})`);
-        this.ctx!.fillRect(x, y, width, height);
+        this.ctx!.fillStyle = 'rgba(255, 99, 132, 0.35)'; // couleur du hover
+
+        for (const pos of this.positions[champ]) {
+          const x = pos.x0 * this.scale;
+          const y = pos.top * this.scale;
+          const width = (pos.x1 - pos.x0) * this.scale;
+          const height = (pos.bottom - pos.top) * this.scale;
+
+          this.ctx!.fillRect(x, y, width, height);
+          console.log(`🔍 surlignage ${champ} à (${x}, ${y}) (${width}x${height})`);
+        }
       }).catch((err: any) => {
         if (err?.name !== 'RenderingCancelledException') {
           console.error("Erreur de rendu PDF :", err);
@@ -156,13 +157,6 @@ export class AppComponent {
   private _drawHighlightFor(champ: string) {
     if (!this.pageRendered || !this.ctx || !this.canvas || !this.positions?.[champ]) return;
 
-    const { x0, x1, top, bottom } = this.positions[champ];
-
-    const x = x0 * this.scale;
-    const y = top * this.scale;
-    const width = (x1 - x0) * this.scale;
-    const height = (bottom - top) * this.scale;
-
     this.pdfDoc.getPage(1).then((page: any) => {
       const viewport = page.getViewport({ scale: this.scale });
 
@@ -172,8 +166,16 @@ export class AppComponent {
       this.currentRenderTask = renderTask;
 
       renderTask.promise.then(() => {
-        this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)';
-        this.ctx!.fillRect(x, y, width, height);
+        this.ctx!.fillStyle = 'rgba(255, 230, 100, 0.4)'; // couleur fixe (click)
+
+        for (const pos of this.positions[champ]) {
+          const x = pos.x0 * this.scale;
+          const y = pos.top * this.scale;
+          const width = (pos.x1 - pos.x0) * this.scale;
+          const height = (pos.bottom - pos.top) * this.scale;
+
+          this.ctx!.fillRect(x, y, width, height);
+        }
       }).catch((err: any) => {
         if (err?.name !== 'RenderingCancelledException') {
           console.error("Erreur de rendu PDF :", err);

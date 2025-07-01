@@ -12,50 +12,6 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 
 
 
-def nettoyer_montant_old(val):
-    """
-    Nettoie un montant en supprimant les caractères non numériques sauf ',' et '.'.
-    Convertit une chaîne du type '2 100,00 €' ou '350,00' en float.
-    """
-    if not isinstance(val, str):
-        return None
-    # Garde uniquement chiffres, virgule, point
-    val = re.sub(r"[^\d,\.]", "", val)
-    # Si le format est européen avec virgule comme séparateur décimal
-    if val.count(',') == 1 and (val.count('.') == 0 or val.find(',') > val.find('.')):
-        val = val.replace(',', '.')
-    try:
-        return float(val)
-    except ValueError:
-        return None
-
-def filtrer_reponse_json_old(reponse):
-    """
-    Extrait le premier JSON (objet ou liste) valide d'une chaîne, même si le bloc ```json est mal fermé.
-    Nettoie les montants TTC et TVA si présents, et ajoute montant_HT = montant_TTC - montant_TVA si possible.
-    """
-    reponse = re.sub(r"```(?:json)?", "", reponse).strip()
-    candidats = re.findall(r'({[\s\S]*?}|\[[\s\S]*?\])', reponse)
-
-    for bloc in candidats:
-        try:
-            data = json.loads(bloc)
-
-            if isinstance(data, dict):
-                ttc = nettoyer_montant_old(data.get("montant_TTC", None))
-                tva = nettoyer_montant_old(data.get("montant_TVA", None))
-                if ttc is not None and tva is not None:
-                    data["montant_HT"] = round(ttc - tva, 2)
-                else:
-                    data["montant_HT"] = None
-
-            return data
-        except json.JSONDecodeError:
-            continue
-
-    return None
-
-
 def nettoyer_montant(val):
     if isinstance(val, (int, float, Decimal)):
         return Decimal(str(val)), '.'
@@ -154,14 +110,13 @@ def generer_variantes_montant(val):
 
 def trouver_positions_champs(pdf_path, champs_dict):
     """
-    Pour chaque champ du dictionnaire (ex: {"entreprise": "EDF"}),
-    cherche la position du texte dans le PDF.
-    Retourne un dictionnaire : champ → position sur la première page (x0, x1, top, bottom).
+    Pour chaque champ (ex: {"entreprise": "EDF"}), cherche TOUTES les positions du texte
+    dans la première page du PDF. Retourne un dict : champ → liste de positions (x0, x1, top, bottom).
     """
     positions = {}
 
     with pdfplumber.open(pdf_path) as pdf:
-        page = pdf.pages[0]  # Pour aller plus loin : boucle sur pages
+        page = pdf.pages[0]
         words = page.extract_words()
 
         for key, valeur in champs_dict.items():
@@ -176,19 +131,19 @@ def trouver_positions_champs(pdf_path, champs_dict):
 
             print(f"Recherche de '{key}' avec variantes : {valeurs_possibles}")
 
+            positions[key] = []  # Initialise la liste de positions pour ce champ
+
             for mot in words:
                 mot_simplifie = mot['text'].lower().strip().replace(" ", "")
                 for v in valeurs_possibles:
                     if v in mot_simplifie:
-                        positions[key] = {
+                        positions[key].append({
                             "x0": mot["x0"],
                             "x1": mot["x1"],
                             "top": mot["top"],
                             "bottom": mot["bottom"]
-                        }
-                        break
-                if key in positions:
-                    break  # premier match suffit
+                        })
+                        break  # ne cherche pas d'autres variantes pour ce mot
 
     return positions
 
