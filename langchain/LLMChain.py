@@ -84,6 +84,8 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         raise RuntimeError("❌ Impossible d'extraire la requête SQL depuis la réponse du LLM.")
 
     try:
+        print("==== REQUÊTE SQL GÉNÉRÉE ====")
+        print(requete_sql)
         resultat_sql = db.run(requete_sql)
     except Exception as e:
         resultat_sql = f"[ERREUR SQL] {e}"
