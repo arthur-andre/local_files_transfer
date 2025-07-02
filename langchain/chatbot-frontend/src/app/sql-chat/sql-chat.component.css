@@ -258,12 +258,13 @@ body, .app-container {
 }
 
 .table-wrapper {
-  max-height: 200px;   /* limite hauteur */
-  overflow-y: auto;    /* scroll vertical */
+  max-height: 200px;   /* zone plus haute pour scroller sur 100 lignes */
+  overflow-y: auto;
   border: 1px solid #444;
   border-radius: 4px;
   margin-top: 10px;
 }
+
 
 table {
   border-collapse: collapse;
