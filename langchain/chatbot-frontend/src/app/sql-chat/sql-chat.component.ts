@@ -22,6 +22,8 @@ export class SqlChatComponent implements OnInit {
   loading = false;
   selectedDb = '';
   databases: string[] = [];
+  schema: Record<string, string[]> = {}; // table → colonnes
+  expandedTables = new Set<string>();
 
   constructor(private http: HttpClient) {}
 
@@ -66,5 +68,23 @@ export class SqlChatComponent implements OnInit {
       }
     });
   }
+  onDbChange() {
+    if (!this.selectedDb) return;
+    this.http.get<Record<string, string[]>>(`http://localhost:8020/schema/${this.selectedDb}`)
+      .subscribe({
+        next: schema => {
+          this.schema = schema;
+          this.expandedTables.clear();
+        },
+        error: err => console.error(err)
+      });
+  }
 
+  toggleTable(table: string) {
+    if (this.expandedTables.has(table)) {
+      this.expandedTables.delete(table);
+    } else {
+      this.expandedTables.add(table);
+    }
+  }
 }

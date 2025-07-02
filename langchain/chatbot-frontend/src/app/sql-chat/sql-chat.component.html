@@ -1,9 +1,21 @@
 <div class="app-container">
   <aside class="sidebar">
     <h3>📚 Bases de données</h3>
-    <select [(ngModel)]="selectedDb">
-      <option *ngFor="let db of databases" [value]="db">{{ db }}</option>
-    </select>
+      <select [(ngModel)]="selectedDb" (change)="onDbChange()">
+        <option *ngFor="let db of databases" [value]="db">{{ db }}</option>
+      </select>
+
+      <ul class="tree">
+        <li *ngFor="let table of schema | keyvalue">
+          <div (click)="toggleTable(table.key)" class="table-name">
+            {{ table.key }}
+            <span>{{ expandedTables.has(table.key) ? '▼' : '▶' }}</span>
+          </div>
+          <ul *ngIf="expandedTables.has(table.key)" class="columns-list">
+            <li *ngFor="let col of table.value">{{ col }}</li>
+          </ul>
+        </li>
+      </ul>
   </aside>
 
   <main class="chat-area">

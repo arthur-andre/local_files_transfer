@@ -141,3 +141,22 @@ body, .app-container {
   background-color: #555;
   cursor: not-allowed;
 }
+
+.tree {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.table-name {
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+}
+
+.columns-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  margin-top: 5px;
+}

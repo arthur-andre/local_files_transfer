@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-
+from typing import Dict, List
 import uvicorn
 
 
@@ -127,6 +127,16 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@app.get("/schema/{database_name}")
+def get_schema(database_name: str) -> Dict[str, List[str]]:
+    db = charger_base_sqlite(database_name)
+    tables = db.get_table_info()  # liste des tables
+    schema = {}
+    for table in tables:
+        columns = db.get_table_columns(table)  # récupère colonnes de la table
+        schema[table] = columns
+    return schema
 
 # === LANCEMENT SERVEUR ===
 if __name__ == "__main__":
