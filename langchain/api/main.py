@@ -63,12 +63,17 @@ formule une réponse synthétique et claire à la question en t'appuyant sur les
     return llm.invoke(prompt)
 
 def get_sql_results_two_formats(db, sql):
+    print("Exécution de la requête SQL :", sql)
     result_proxy = db._execute(sql)
+    print("Résultats obtenus :", result_proxy)
     columns = result_proxy.keys()
+    print("Colonnes :", columns)
     rows = result_proxy.fetchall()
+    print("Lignes :", rows)
 
     # Format 1 : liste de dictionnaires (colonne: valeur)
     list_of_dicts = [dict(zip(columns, row)) for row in rows]
+    print("Liste de dictionnaires :", list_of_dicts)
 
     # Format 2 : dict colonnes + valeurs en listes
     columns_values = {
