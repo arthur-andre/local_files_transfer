@@ -7,6 +7,10 @@ interface Message {
   question: string;
   requete_sql: string;
   reponse_sql: string;
+  columns_values?: {
+    columns: string[];
+    values: any[][];
+  };
 }
 
 @Component({
@@ -60,7 +64,8 @@ export class SqlChatComponent implements OnInit {
         this.messages.push({
           question: q,
           requete_sql: res.requete_sql || "",
-          reponse_sql: res.reponse_finale.content || ""
+          reponse_sql: res.reponse_finale.content || "",
+          columns_values: res.columns_values || null,
         });
         this.question = '';
         this.loading = false;

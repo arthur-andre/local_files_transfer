@@ -246,3 +246,42 @@ body, .app-container {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+
+.table-result {
+  margin-top: 15px;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 8px #bb86fc44;
+  color: #ccc;
+}
+
+.table-wrapper {
+  max-height: 200px;   /* limite hauteur */
+  overflow-y: auto;    /* scroll vertical */
+  border: 1px solid #444;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px; /* pour forcer scroll horizontal si nécessaire */
+}
+
+th, td {
+  border: 1px solid #444;
+  padding: 8px 12px;
+  text-align: left;
+  white-space: nowrap; /* pas de retour à la ligne */
+}
+
+th {
+  background-color: #333;
+  color: #bb86fc;
+  position: sticky;
+  top: 0; /* fixe l'entête pendant le scroll */
+  z-index: 1;
+}

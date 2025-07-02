@@ -51,6 +51,23 @@
             <pre>{{ msg.requete_sql }}</pre>
           </div>
         </div>
+        <div class="table-result" *ngIf="msg.columns_values">
+        <h4>📋 Aperçu données (max 5 lignes) :</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th *ngFor="let col of msg.columns_values.columns">{{ col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of msg.columns_values.values.slice(0, 5)">
+                <td *ngFor="let val of row">{{ val }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       </div>
     </div>
 
