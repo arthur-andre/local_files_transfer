@@ -38,11 +38,8 @@ def charger_base_sqlite(nom_fichier: str) -> SQLDatabase:
     return SQLDatabase.from_uri(f"sqlite:///{chemin}")
 
 def get_columns_for_table(db: SQLDatabase, table_name: str):
-    # Récupération brute des colonnes avec PRAGMA
-    rows = db._execute(f"PRAGMA table_info({table_name})")
-    # Chaque ligne est un tuple, le deuxième champ (index 1) est le nom
-    print(rows)
-    return [row[1] for row in rows]
+    rows = db._execute(f"PRAGMA table_info({table_name})")  # rows = list of tuples
+    return [row['name'] for row in rows]
 
 def extraire_sql_depuis_texte(texte: str) -> str:
     match = re.search(r"```sql\n(.*?)\n```", texte, re.DOTALL)
