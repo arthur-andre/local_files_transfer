@@ -37,6 +37,12 @@ def charger_base_sqlite(nom_fichier: str) -> SQLDatabase:
         raise FileNotFoundError(f"Base non trouvée : {chemin}")
     return SQLDatabase.from_uri(f"sqlite:///{chemin}")
 
+def get_columns_for_table(db: SQLDatabase, table_name: str):
+    # Exécute la requête SQLite pour récupérer les colonnes
+    rows = db.run(f"PRAGMA table_info({table_name})")
+    # Chaque row a une clé 'name' qui est le nom de la colonne
+    return [row['name'] for row in rows]
+
 def extraire_sql_depuis_texte(texte: str) -> str:
     match = re.search(r"```sql\n(.*?)\n```", texte, re.DOTALL)
     return match.group(1).strip() if match else None
@@ -129,13 +135,12 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
 
 
 @app.get("/schema/{database_name}")
-def get_schema(database_name: str) -> Dict[str, List[str]]:
+def get_schema(database_name: str):
     db = charger_base_sqlite(database_name)
-    tables = db.get_table_info()  # liste des tables
+    tables = db.get_table_info()  # ou get_table_names() selon ta classe
     schema = {}
     for table in tables:
-        columns = db.get_table_columns(table)  # récupère colonnes de la table
-        schema[table] = columns
+        schema[table] = get_columns_for_table(db, table)
     return schema
 
 # === LANCEMENT SERVEUR ===
