@@ -58,7 +58,7 @@ REQUÊTE SQL GÉNÉRÉE :
 RÉSULTAT OBTENU :
 {resultat_sql}
 
-formule absolument dans la langue française, une réponse synthétique et claire à la question en t'appuyant sur les données retournées.
+formule une réponse synthétique et claire à la question en t'appuyant sur les données retournées. Formule la réponse absolument en français.
 """
     return llm.invoke(prompt)
 
@@ -123,6 +123,8 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
             resultat_sql = f"[ERREUR SQL] {e}"
 
         reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
+        print("==== RÉPONSE FINALE ====")
+        print(reponse.content)
         return {
             "requete_sql": requete_sql,
             "reponse_finale": reponse

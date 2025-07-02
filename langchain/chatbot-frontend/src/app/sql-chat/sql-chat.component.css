@@ -95,20 +95,21 @@ body, .app-container {
 
 .response-text, .sql-text {
   flex: 1 1 45%;
+  max-width: 100%;
   background-color: #222;
   padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 0 8px #bb86fc44;
-  white-space: pre-wrap;
-  overflow-x: auto;
   color: #ccc;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
 }
 
-.response-text h4, .sql-text h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-weight: 700;
-  color: #bb86fc;
+.response-text pre, .sql-text pre {
+  margin: 0;
+  white-space: inherit;
+  word-break: inherit;
+  overflow-x: inherit;
 }
 
 .chat-input {
