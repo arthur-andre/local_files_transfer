@@ -62,6 +62,11 @@ formule une réponse synthétique et claire à la question en t'appuyant sur les
 """
     return llm.invoke(prompt)
 
+def execute_sql_with_columns(db, sql):
+    result_proxy = db._execute(sql)
+    rows = result_proxy.fetchall()
+    columns = result_proxy.keys()
+    return [dict(zip(columns, row)) for row in rows]
 
 
 # === MODELE REQUETE ===
@@ -122,13 +127,15 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         except Exception as e:
             resultat_sql = f"[ERREUR SQL] {e}"
 
+        test = execute_sql_with_columns(db, requete_sql)
         reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
         print("==== RÉPONSE FINALE ====")
         print(reponse.content)
         return {
             "requete_sql": requete_sql,
             "reponse_finale": reponse,
-            "resultat_sql_complet": resultat_sql
+            "resultat_sql_complet": resultat_sql,
+            "test": test
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
