@@ -62,11 +62,21 @@ formule une réponse synthétique et claire à la question en t'appuyant sur les
 """
     return llm.invoke(prompt)
 
-def execute_sql_with_columns(db, sql):
+def get_sql_results_two_formats(db, sql):
     result_proxy = db._execute(sql)
-    rows = result_proxy.fetchall()
     columns = result_proxy.keys()
-    return [dict(zip(columns, row)) for row in rows]
+    rows = result_proxy.fetchall()
+
+    # Format 1 : liste de dictionnaires (colonne: valeur)
+    list_of_dicts = [dict(zip(columns, row)) for row in rows]
+
+    # Format 2 : dict colonnes + valeurs en listes
+    columns_values = {
+        "columns": list(columns),
+        "values": [list(row) for row in rows]
+    }
+
+    return list_of_dicts, columns_values
 
 
 # === MODELE REQUETE ===
@@ -127,7 +137,7 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         except Exception as e:
             resultat_sql = f"[ERREUR SQL] {e}"
 
-        test = execute_sql_with_columns(db, requete_sql)
+        list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
         reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
         print("==== RÉPONSE FINALE ====")
         print(reponse.content)
@@ -135,7 +145,8 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
             "requete_sql": requete_sql,
             "reponse_finale": reponse,
             "resultat_sql_complet": resultat_sql,
-            "test": test
+            "list_of_dicts": list_of_dicts,
+            "columns_values": columns_values
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
