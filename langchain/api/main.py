@@ -140,7 +140,8 @@ def get_schema(database_name: str):
     tables = db.get_table_info()  # ou get_table_names() selon ta classe
     schema = {}
     for table in tables:
-        print(print(tables))
+        print("==== TABLE ====", table)
+        print("==== ============ ====", table)
         print(get_columns_for_table(db, table))
         schema[table] = get_columns_for_table(db, table)
     return schema
