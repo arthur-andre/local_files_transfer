@@ -1,15 +1,21 @@
-.app-title {
-  font-size: 2rem;
-  color: #1f2937;
-  margin-bottom: 20px;
+header {
+  background-color: #2d2d2d; /* gris foncé */
+  color: #f0f0f0;            /* texte clair */
+  font-family: 'Roboto', sans-serif; /* police moderne */
+  font-weight: 700;
+  font-size: 1.5rem;
+  padding: 15px 30px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.app-title .highlight {
-  color: #3b82f6;
-  font-weight: bold;
+/* Style lien dans le titre */
+header a {
+  color: #4f8ef7; /* bleu clair */
+  text-decoration: none;
 }
 
-
+header a:hover {
+  text-decoration: underline;
+}
