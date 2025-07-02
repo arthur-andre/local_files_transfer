@@ -1,0 +1,15 @@
+.app-title {
+  font-size: 2rem;
+  color: #1f2937;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-title .highlight {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+

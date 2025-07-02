@@ -1,0 +1,40 @@
+<div class="app-container">
+  <aside class="sidebar">
+    <h3>📚 Bases de données</h3>
+    <select [(ngModel)]="selectedDb">
+      <option *ngFor="let db of databases" [value]="db">{{ db }}</option>
+    </select>
+  </aside>
+
+  <main class="chat-area">
+    <div class="chat-header">🧠 Chat SQL</div>
+
+    <div class="chat-messages" *ngIf="messages.length; else noMessages">
+      <div *ngFor="let msg of messages" class="chat-message">
+        <div><strong>❓ Question :</strong> {{ msg.question }}</div>
+
+        <div class="response-split">
+          <div class="response-text">
+            <h4>💬 Réponse :</h4>
+            <pre>{{ msg.reponse_sql }}</pre>
+          </div>
+          <div class="sql-text">
+            <h4>🧠 Requête SQL :</h4>
+            <pre>{{ msg.requete_sql }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noMessages>
+      <p>Aucune question posée pour l'instant.</p>
+    </ng-template>
+
+    <div class="chat-input">
+      <input [(ngModel)]="question" placeholder="Pose ta question..." />
+      <button (click)="poserQuestion()" [disabled]="loading || !selectedDb || !question.trim()">
+        {{ loading ? '...' : 'Envoyer' }}
+      </button>
+    </div>
+  </main>
+</div>
