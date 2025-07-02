@@ -54,7 +54,7 @@ REQUÊTE SQL GÉNÉRÉE :
 RÉSULTAT OBTENU :
 {resultat_sql}
 
-Formule une réponse synthétique et claire à la question en t'appuyant sur les données retournées.
+ormule une réponse synthétique et claire en français à la question en t'appuyant sur les données retournées.
 """
     return llm.invoke(prompt)
 

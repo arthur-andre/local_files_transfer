@@ -33,9 +33,11 @@ export class SqlChatComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur récupération bases:', err);
+        alert('Erreur récupération bases : ' + JSON.stringify(err));
       }
     });
   }
+
 
   poserQuestion() {
     const q = this.question.trim();
@@ -47,10 +49,13 @@ export class SqlChatComponent implements OnInit {
       database: this.selectedDb
     }).subscribe({
       next: (res) => {
+        console.log('Requête SQL:', res.requete_sql);
+        console.log('Réponse finale:', res.reponse_finale);
+
         this.messages.push({
           question: q,
-          requete_sql: res.requete_sql || "",       // affiche la requête si elle est présente
-          reponse_sql: res.reponse_finale || ""     // réponse textuelle synthétisée
+          requete_sql: res.requete_sql || "",
+          reponse_sql: res.reponse_finale.content || ""
         });
         this.question = '';
         this.loading = false;
@@ -61,4 +66,5 @@ export class SqlChatComponent implements OnInit {
       }
     });
   }
+
 }
