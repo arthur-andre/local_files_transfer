@@ -137,6 +137,7 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
 @app.get("/schema/{database_name}")
 def get_schema(database_name: str):
     db = charger_base_sqlite(database_name)
+    print(db.get_usable_table_names())
     tables = db.get_table_info()  # ou get_table_names() selon ta classe
     print("==== TABLES ====", tables)
     schema = {}
