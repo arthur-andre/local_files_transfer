@@ -25,6 +25,8 @@ body, .app-container {
   border-right: 1px solid #333;
   display: flex;
   flex-direction: column;
+  color: #ddd;
+  font-family: 'Roboto', sans-serif;
 }
 
 .sidebar h3 {
@@ -42,7 +44,9 @@ body, .app-container {
   background-color: #333;
   color: #eee;
   outline: none;
+  margin-bottom: 25px;  /* Plus d'espace après le select */
 }
+
 
 .sidebar select option {
   background-color: #333;
@@ -142,21 +146,102 @@ body, .app-container {
   cursor: not-allowed;
 }
 
+/* Arbre des tables */
 .tree {
   list-style-type: none;
-  padding-left: 10px;
+  padding-left: 0;
+  margin: 0;
 }
 
+.table-item {
+  margin-bottom: 15px;
+}
+
+/* Table name container */
 .table-name {
   cursor: pointer;
   user-select: none;
-  font-weight: bold;
+  font-weight: 700;
   display: flex;
-  justify-content: space-between;
+  align-items: center;       /* alignement vertical */
+  gap: 8px;                  /* espace entre icône et texte */
+  color: #ccc;
+}
+
+/* Icon folder size */
+.icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.toggle-icon {
+  font-weight: 900;
+  color: #bb86fc;
+  user-select: none;
 }
 
 .columns-list {
   list-style-type: disc;
   padding-left: 20px;
-  margin-top: 5px;
+  margin-top: 6px;
+}
+
+
+.column-name {
+  font-style: italic;
+  font-weight: 400;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+
+/* Icône schéma */
+.schema-info h4 {
+  display: flex;
+  align-items: center;
+  color: #bb86fc;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.icon-schema {
+  vertical-align: middle;   /* alignement vertical avec le texte */
+  margin-right: 6px;        /* espace entre icône et texte */
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;           /* éviter que l’icône se rétrécisse */
+}
+
+.schema-info .db-name {
+  font-weight: 700;
+  color: #bb86fc;
+}
+
+.clear-chat-btn {
+  background: transparent;
+  border: none;
+  color: #bb86fc;
+  font-weight: 700;
+  cursor: pointer;
+  float: right;
+  font-size: 0.9rem;
+  padding: 0 10px;
+  transition: color 0.3s ease;
+}
+
+.clear-chat-btn:hover {
+  color: #ff5555;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: white; /* couleur du spinner */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

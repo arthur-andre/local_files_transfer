@@ -70,6 +70,7 @@ export class SqlChatComponent implements OnInit {
   }
   onDbChange() {
     if (!this.selectedDb) return;
+    this.clearChat();
     this.http.get<Record<string, string[]>>(`http://localhost:8020/schema/${this.selectedDb}`)
       .subscribe({
         next: schema => {
@@ -86,5 +87,8 @@ export class SqlChatComponent implements OnInit {
     } else {
       this.expandedTables.add(table);
     }
+  }
+  clearChat() {
+    this.messages = [];
   }
 }
