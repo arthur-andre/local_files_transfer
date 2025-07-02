@@ -138,6 +138,7 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
             resultat_sql = f"[ERREUR SQL] {e}"
 
         list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
+        print("==== RÉSULTAT SQL ====")
         reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
         print("==== RÉPONSE FINALE ====")
         print(reponse.content)
