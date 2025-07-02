@@ -127,7 +127,8 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         print(reponse.content)
         return {
             "requete_sql": requete_sql,
-            "reponse_finale": reponse
+            "reponse_finale": reponse,
+            "resultat_sql_complet": resultat_sql
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
