@@ -64,21 +64,21 @@ formule une réponse synthétique et claire à la question en t'appuyant sur les
 
 def get_sql_results_two_formats(db, sql):
     print("Exécution de la requête SQL :", sql)
-    result_proxy = db._execute(sql)
-    print("Résultats obtenus :", result_proxy)
-    columns = result_proxy.keys()
-    print("Colonnes :", columns)
-    rows = result_proxy.fetchall()
-    print("Lignes :", rows)
-
-    # Format 1 : liste de dictionnaires (colonne: valeur)
-    list_of_dicts = [dict(zip(columns, row)) for row in rows]
+    list_of_dicts = db._execute(sql)  # c’est déjà une liste de dicts
     print("Liste de dictionnaires :", list_of_dicts)
 
-    # Format 2 : dict colonnes + valeurs en listes
+    if not list_of_dicts:
+        return [], {"columns": [], "values": []}
+
+    columns = list(list_of_dicts[0].keys())
+    values = [list(d.values()) for d in list_of_dicts]
+
+    print("Colonnes :", columns)
+    print("Valeurs :", values)
+
     columns_values = {
-        "columns": list(columns),
-        "values": [list(row) for row in rows]
+        "columns": columns,
+        "values": values
     }
 
     return list_of_dicts, columns_values
