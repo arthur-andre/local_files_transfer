@@ -181,3 +181,32 @@ li.active {
   height: auto;
   margin-bottom: 16px;
 }
+
+
+.loading-button {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-weight: bold;
+  color: #6a5acd;
+  background-color: transparent;
+  border: 2px solid #6a5acd;
+  border-radius: 5px;
+  cursor: not-allowed;
+}
+
+.spinner {
+  border: 3px solid rgba(106, 90, 205, 0.3);
+  border-top: 3px solid #6a5acd;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

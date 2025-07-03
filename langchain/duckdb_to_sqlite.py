@@ -1,6 +1,7 @@
 import duckdb
 import sqlite3
 import os
+import argparse
 
 def convert_duckdb_to_sqlite(duckdb_path, sqlite_path):
     # Connexions
@@ -28,6 +29,10 @@ def convert_duckdb_to_sqlite(duckdb_path, sqlite_path):
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    duckdb_path = "historique.db"
-    sqlite_path = "historique_sqlite.db"
+    parser = argparse.ArgumentParser(description="Convert DuckDB database to SQLite.")
+    parser.add_argument("--duckdb_path", type=str, help="Path to the DuckDB database file.")
+    args = parser.parse_args()
+    duckdb_path =  args.duckdb_path
+    base_file_name = os.path.splitext(duckdb_path)[0]
+    sqlite_path = f"{base_file_name}_sqlite.db"
     convert_duckdb_to_sqlite(duckdb_path, sqlite_path)

@@ -43,9 +43,10 @@
     <div style="flex: 2; min-width: 500px;">
       <input type="file" (change)="onFileSelected($event)" accept="application/pdf" />
 
-      <div *ngIf="loading" style="margin-top: 10px; color: #6a5acd; font-weight: bold;">
-        🔄 Analyse en cours...
-      </div>
+      <button *ngIf="loading" class="loading-button" disabled>
+        <span class="spinner"></span>
+        Analyse en cours...
+      </button>
 
       <button 
         (click)="analyzePDF()" 
