@@ -173,7 +173,7 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         requete_sql = extraire_sql_depuis_texte(texte)
 
         if not requete_sql:
-            raise RuntimeError("❌ Impossible d'extraire la requête SQL depuis la réponse du LLM.")
+            print("❌ Impossible d'extraire la requête SQL pour le texte suivant :", texte)
 
 
         list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
