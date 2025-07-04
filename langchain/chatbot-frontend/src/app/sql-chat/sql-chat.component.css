@@ -27,6 +27,7 @@ body, .app-container {
   flex-direction: column;
   color: #ddd;
   font-family: 'Roboto', sans-serif;
+  height: 100vh;
 }
 
 .sidebar h3 {
@@ -51,6 +52,25 @@ body, .app-container {
 .sidebar select option {
   background-color: #333;
   color: #eee;
+}
+
+/* Conteneur scrollable pour la partie variable */
+.schema-scroll {
+  overflow-y: auto;
+  flex-grow: 1;
+  margin-top: 10px;
+}
+
+/* Empêche tout débordement visuel */
+.schema-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.schema-scroll::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 3px;
+}
+.schema-scroll::-webkit-scrollbar-track {
+  background-color: #222;
 }
 
 .chat-area {
@@ -152,10 +172,11 @@ body, .app-container {
   list-style-type: none;
   padding-left: 0;
   margin: 0;
+  font-family: monospace;
 }
 
 .table-item {
-  margin-bottom: 15px;
+  margin-bottom: 0.5em;
 }
 
 /* Table name container */
@@ -181,18 +202,31 @@ body, .app-container {
 }
 
 .columns-list {
-  list-style-type: disc;
-  padding-left: 20px;
-  margin-top: 6px;
+  list-style-type: none;
+  margin: 0;
+  padding-left: 16px;
+  position: relative;
 }
 
 
 .column-name {
-  font-style: italic;
-  font-weight: 400;
-  color: #aaa;
-  margin-bottom: 4px;
+  position: relative;
+  padding-left: 24px; /* décalage plus important */
+  white-space: nowrap;
+  font-family: monospace;
 }
+
+.column-name::before {
+  content: "├── ";
+  position: absolute;
+  left: 0;
+  color: #888;
+}
+
+.columns-list li:last-child::before {
+  content: "└── ";
+}
+
 
 /* Icône schéma */
 .schema-info h4 {

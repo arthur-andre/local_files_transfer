@@ -64,24 +64,32 @@ formule une réponse synthétique et claire à la question en t'appuyant sur les
 
 def get_sql_results_two_formats(db, sql):
     print("Exécution de la requête SQL :", sql)
-    list_of_dicts = db._execute(sql)  # c’est déjà une liste de dicts
-    print("Liste de dictionnaires :", list_of_dicts)
+    try:
+        list_of_dicts = db._execute(sql)
+        print("Liste de dictionnaires :", list_of_dicts)
 
-    if not list_of_dicts:
-        return [], {"columns": [], "values": []}
+        if not list_of_dicts:
+            return [], {"columns": [], "values": []}
 
-    columns = list(list_of_dicts[0].keys())
-    values = [list(d.values()) for d in list_of_dicts]
+        columns = list(list_of_dicts[0].keys())
+        values = [list(d.values()) for d in list_of_dicts]
 
-    print("Colonnes :", columns)
-    print("Valeurs :", values)
+        print("Colonnes :", columns)
+        print("Valeurs :", values)
 
-    columns_values = {
-        "columns": columns,
-        "values": values
-    }
+        return list_of_dicts, {"columns": columns, "values": values}
 
-    return list_of_dicts, columns_values
+    except Exception as e:
+        error_message = "Erreur dans la syntaxe de la requête SQL"
+        print(f"[ERREUR SQL] {e}")
+        return (
+            [{"Erreur": error_message}],
+            {
+                "columns": ["Erreur"],
+                "values": [[error_message]]
+            }
+        )
+
 
 
 # === MODELE REQUETE ===
