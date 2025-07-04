@@ -7,6 +7,7 @@ import argparse
 import time
 import json
 from decimal import Decimal, InvalidOperation
+from collections import defaultdict
 
 warnings.filterwarnings("ignore", category=UserWarning, module="pdfplumber")
 
@@ -74,79 +75,81 @@ def filtrer_reponse_json(reponse):
     return None
 
 def generer_variantes_montant(val):
-    """
-    Génère les variantes possibles d'un montant à tester dans le PDF :
-    - tel quel (nettoyé)
-    - avec virgule comme séparateur décimal
-    - avec point
-    - sans décimale si == 0
-    """
     if not isinstance(val, str):
         return []
 
-    val = val.strip().replace(" ", "").replace("€", "")
+    val = val.strip().replace("€", "").replace(" ", "")
     variantes = set()
 
-    # Choix du séparateur
-    if ',' in val:
-        val_point = val.replace(',', '.')
-    else:
-        val_point = val
-
     try:
-        d = Decimal(val_point)
+        d = Decimal(val.replace(",", "."))
         str_dot = str(d)
-        str_comma = str_dot.replace('.', ',')
+        str_comma = str_dot.replace(".", ",")
 
-        variantes.add(str_dot)
-        variantes.add(str_comma)
+        variantes.update([str_dot, str_comma])
 
-        if d == d.to_integral():  # si décimales nulles
+        int_part, _, frac_part = str_dot.partition(".")
+        grouped = "{:,}".format(int(int_part)).replace(",", " ")
+        if frac_part:
+            variantes.update([f"{grouped},{frac_part}", f"{grouped}.{frac_part}"])
+        else:
+            variantes.add(grouped)
+
+        if d == d.to_integral():
             variantes.add(str(int(d)))
     except InvalidOperation:
         variantes.add(val)
 
-    return list(variantes)
+    return [v.replace(" ", "") for v in variantes]  # standardisation
+
+def get_lines(words, y_tolerance=3):
+    lignes = defaultdict(list)
+    for mot in words:
+        top_key = round(mot["top"] / y_tolerance) * y_tolerance
+        lignes[top_key].append(mot)
+    return [sorted(l, key=lambda w: w["x0"]) for l in lignes.values()]
 
 def trouver_positions_champs(pdf_path, champs_dict):
-    """
-    Pour chaque champ (ex: {"entreprise": "EDF"}), cherche TOUTES les positions du texte
-    dans la première page du PDF. Retourne un dict : champ → liste de positions (x0, x1, top, bottom).
-    """
     positions = {}
 
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[0]
         words = page.extract_words()
+        lignes = get_lines(words)
 
-        for key, valeur in champs_dict.items():
-            if not valeur:
+        for key, val in champs_dict.items():
+            if not val:
                 continue
 
-            # Génère les variantes à chercher selon le champ
-            if key in ["montant_TTC", "montant_TVA", "montant_HT"]:
-                valeurs_possibles = generer_variantes_montant(valeur)
+            if key.startswith("montant_"):
+                variantes = generer_variantes_montant(val)
             else:
-                valeurs_possibles = [str(valeur).lower().strip().split()[0]]
+                variantes = [val.strip().lower().replace(" ", "")]
 
-            print(f"Recherche de '{key}' avec variantes : {valeurs_possibles}")
+            print(f"[{key}] Variantes recherchées : {variantes}")
+            positions[key] = []
 
-            positions[key] = []  # Initialise la liste de positions pour ce champ
-
-            for mot in words:
-                mot_simplifie = mot['text'].lower().strip().replace(" ", "")
-                for v in valeurs_possibles:
-                    if v in mot_simplifie:
-                        positions[key].append({
-                            "x0": mot["x0"],
-                            "x1": mot["x1"],
-                            "top": mot["top"],
-                            "bottom": mot["bottom"]
-                        })
-                        break  # ne cherche pas d'autres variantes pour ce mot
+            for ligne in lignes:
+                n = len(ligne)
+                # fenêtre glissante de 1 à 5 mots
+                for i in range(n):
+                    for j in range(i+1, min(i+6, n+1)):
+                        mots_window = ligne[i:j]
+                        texte_concat = "".join([w["text"] for w in mots_window]).lower().replace(" ", "")
+                        if texte_concat in variantes:
+                            x0 = mots_window[0]["x0"]
+                            x1 = mots_window[-1]["x1"]
+                            top = min(w["top"] for w in mots_window)
+                            bottom = max(w["bottom"] for w in mots_window)
+                            positions[key].append({
+                                "x0": x0,
+                                "x1": x1,
+                                "top": top,
+                                "bottom": bottom
+                            })
+                            break  # trouvé, on sort cette fenêtre
 
     return positions
-
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF file"""
