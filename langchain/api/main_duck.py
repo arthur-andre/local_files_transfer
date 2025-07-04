@@ -141,8 +141,21 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
 @app.get("/schema/{database_name}")
 def get_schema(database_name: str):
     db = charger_base_duckdb(database_name)
-    ddl_schema = get_ddl_schema(db)
-    return {"ddl": ddl_schema}
+    print(f"Chargement de la base : {database_name}")
+    if not db:
+        raise HTTPException(status_code=404, detail="Base de données non trouvée.")
+    print("Base chargée avec succès.")
+
+    try:
+        tables = db.get_usable_table_names()
+        schema = {}
+        for table in tables:
+            columns_info = db._execute(f"PRAGMA table_info({table})")
+            schema[table] = [col["name"] for col in columns_info]
+        return schema
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'extraction du schéma : {e}")
+
 
 if __name__ == "__main__":
     uvicorn.run("main_duck:app", host="0.0.0.0", port=8020, reload=False)
