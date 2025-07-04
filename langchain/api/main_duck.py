@@ -55,9 +55,14 @@ def get_ddl_schema(db: SQLDatabase) -> str:
     tables = db.get_usable_table_names()
     ddl_list = []
     for table in tables:
-        ddl = db._execute(f"SHOW CREATE TABLE {table}")
-        if ddl:
-            ddl_list.append(ddl[0]["sql"])
+        try:
+            res = db._execute(
+                f"SELECT sql FROM sqlite_master WHERE type='table' AND name='{table}'"
+            )
+            if res and res[0].get("sql"):
+                ddl_list.append(res[0]["sql"])
+        except Exception as e:
+            print(f"[ERREUR DDL] pour {table} : {e}")
     return "\n\n".join(ddl_list)
 
 def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str):
