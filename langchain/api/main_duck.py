@@ -65,21 +65,36 @@ def get_ddl_schema(db: SQLDatabase) -> str:
             print(f"[ERREUR DDL] pour {table} : {e}")
     return "\n\n".join(ddl_list)
 
-def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str):
-    prompt = f"""
-Tu es un assistant expert en base de données.
+def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, columns_values: dict):
+    if columns_values["columns"] == ["Erreur"]:
+        prompt = f"""
+    Tu es un assistant SQL.
 
-QUESTION POSÉE :
-{question}
+    QUESTION POSÉE :
+    {question}
 
-REQUÊTE SQL GÉNÉRÉE :
-{requete_sql}
+    ERREUR DANS LA REQUÊTE SQL :
+    {columns_values["values"][0][0]}
 
-RÉSULTAT OBTENU :
-{resultat_sql}
+    Explique clairement l'erreur et propose une piste de correction éventuelle en français.
+    """
+    else:
+        prompt = f"""
+        Tu es un assistant expert en base de données.
 
-Formule une réponse synthétique et claire à la question en t'appuyant sur les données retournées. Réponds uniquement en français.
-"""
+        QUESTION POSÉE :
+        {question}
+
+        REQUÊTE SQL GÉNÉRÉE :
+        {requete_sql}
+
+        RÉSULTATS DE LA REQUÊTE :
+        Colonnes : {columns_values["columns"]}
+        Lignes :
+        {columns_values["values"]}
+
+        En te basant uniquement sur les résultats de la requête SQL, réponds à la question en français de manière claire, concise et précise.
+        """
     return llm.invoke(prompt)
 
 class QuestionPayload(BaseModel):
@@ -124,18 +139,12 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         if not requete_sql:
             raise RuntimeError("❌ Impossible d'extraire la requête SQL.")
 
-        try:
-            resultat_sql = db.run(requete_sql)
-        except Exception as e:
-            resultat_sql = f"[ERREUR SQL] {e}"
-
         list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
-        reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
+        reponse = reponse_finale(llm, payload.question, requete_sql, columns_values)
 
         return {
             "requete_sql": requete_sql,
             "reponse_finale": reponse,
-            "resultat_sql_complet": resultat_sql,
             "list_of_dicts": list_of_dicts,
             "columns_values": columns_values
         }

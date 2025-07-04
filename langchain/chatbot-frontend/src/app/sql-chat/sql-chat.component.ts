@@ -57,7 +57,6 @@ export class SqlChatComponent implements OnInit {
       next: (res) => {
         console.log('Requête SQL:', res.requete_sql);
         console.log('Réponse finale:', res.reponse_finale);
-        console.log('Réponse sql finale:', res.resultat_sql_complet);
         console.log('Réponse list_of_dicts:', res.list_of_dicts);
         console.log('Réponse columns_values:', res.columns_values);
 

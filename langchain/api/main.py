@@ -45,21 +45,53 @@ def extraire_sql_depuis_texte(texte: str) -> str:
     match = re.search(r"```sql\n(.*?)\n```", texte, re.DOTALL)
     return match.group(1).strip() if match else None
 
-def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str):
-    prompt = f"""
-Tu es un assistant expert en base de données.
+# def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, resultat_sql: str):
+#     prompt = f"""
+# Tu es un assistant expert en base de données.
 
-QUESTION POSÉE :
-{question}
+# QUESTION POSÉE :
+# {question}
 
-REQUÊTE SQL GÉNÉRÉE :
-{requete_sql}
+# REQUÊTE SQL GÉNÉRÉE :
+# {requete_sql}
 
-RÉSULTAT OBTENU :
-{resultat_sql}
+# RÉSULTAT OBTENU :
+# {resultat_sql}
 
-formule une réponse synthétique et claire à la question en t'appuyant sur les données retournées. Formule la réponse absolument en français.
-"""
+# formule une réponse synthétique et claire à la question en t'appuyant sur les données retournées. Formule la réponse absolument en français.
+# """
+#     return llm.invoke(prompt)
+
+def reponse_finale(llm: ChatOpenAI, question: str, requete_sql: str, columns_values: dict):
+    if columns_values["columns"] == ["Erreur"]:
+        prompt = f"""
+    Tu es un assistant SQL.
+
+    QUESTION POSÉE :
+    {question}
+
+    ERREUR DANS LA REQUÊTE SQL :
+    {columns_values["values"][0][0]}
+
+    Explique clairement l'erreur et propose une piste de correction éventuelle en français.
+    """
+    else:
+        prompt = f"""
+        Tu es un assistant expert en base de données.
+
+        QUESTION POSÉE :
+        {question}
+
+        REQUÊTE SQL GÉNÉRÉE :
+        {requete_sql}
+
+        RÉSULTATS DE LA REQUÊTE :
+        Colonnes : {columns_values["columns"]}
+        Lignes :
+        {columns_values["values"]}
+
+        En te basant uniquement sur les résultats de la requête SQL, réponds à la question en français de manière claire, concise et précise.
+        """
     return llm.invoke(prompt)
 
 def get_sql_results_two_formats(db, sql):
@@ -143,22 +175,15 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         if not requete_sql:
             raise RuntimeError("❌ Impossible d'extraire la requête SQL depuis la réponse du LLM.")
 
-        try:
-            print("==== REQUÊTE SQL GÉNÉRÉE ====")
-            print(requete_sql)
-            resultat_sql = db.run(requete_sql)
-        except Exception as e:
-            resultat_sql = f"[ERREUR SQL] {e}"
 
         list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
         print("==== RÉSULTAT SQL ====")
-        reponse = reponse_finale(llm, payload.question, requete_sql, resultat_sql)
+        reponse = reponse_finale(llm, payload.question, requete_sql, columns_values)
         print("==== RÉPONSE FINALE ====")
         print(reponse.content)
         return {
             "requete_sql": requete_sql,
             "reponse_finale": reponse,
-            "resultat_sql_complet": resultat_sql,
             "list_of_dicts": list_of_dicts,
             "columns_values": columns_values
         }
