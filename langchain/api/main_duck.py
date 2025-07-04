@@ -136,6 +136,8 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
         }
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/schema/{database_name}")
