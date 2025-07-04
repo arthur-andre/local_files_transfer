@@ -138,8 +138,14 @@ Retourne uniquement la requête SQL entre balises ```sql ... ```
 
         if not requete_sql:
             print("❌ Impossible d'extraire la requête SQL pour le texte suivant :", texte)
-
-        list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
+            list_of_dicts = [{"Erreur": "Impossible d'extraire la requête SQL"}]
+            columns_values = {
+                "columns": ["Erreur"],
+                "values": [["Impossible d'extraire la requête SQL"]]
+            }
+            requete_sql = "Aucune requête SQL n'a reussi à être générée"
+        else:
+            list_of_dicts, columns_values = get_sql_results_two_formats(db, requete_sql)
         reponse = reponse_finale(llm, payload.question, requete_sql, columns_values)
 
         return {

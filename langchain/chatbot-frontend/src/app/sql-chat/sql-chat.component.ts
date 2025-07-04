@@ -35,7 +35,6 @@ export class SqlChatComponent implements OnInit {
     this.http.get<string[]>('http://localhost:8020/list_databases').subscribe({
       next: (res) => {
         this.databases = res;
-        if (res.length > 0) this.selectedDb = res[0];
       },
       error: (err) => {
         console.error('Erreur récupération bases:', err);

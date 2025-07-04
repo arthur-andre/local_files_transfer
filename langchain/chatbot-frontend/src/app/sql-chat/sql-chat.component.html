@@ -3,6 +3,7 @@
     <h3>📚 Bases de données</h3>
     
     <select [(ngModel)]="selectedDb" (change)="onDbChange()">
+      <option value="" disabled>🗂️Veuillez choisir une base </option>
       <option *ngFor="let db of databases" [value]="db">{{ db }}</option>
     </select>
 
