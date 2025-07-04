@@ -74,6 +74,8 @@ def filtrer_reponse_json(reponse):
 
     return None
 
+from decimal import Decimal, InvalidOperation
+
 def generer_variantes_montant(val):
     if not isinstance(val, str):
         return []
@@ -90,17 +92,23 @@ def generer_variantes_montant(val):
 
         int_part, _, frac_part = str_dot.partition(".")
         grouped = "{:,}".format(int(int_part)).replace(",", " ")
+
         if frac_part:
             variantes.update([f"{grouped},{frac_part}", f"{grouped}.{frac_part}"])
         else:
             variantes.add(grouped)
 
+            # Ajout des variantes .00 et ,00
+            variantes.add(f"{str_dot}.00")
+            variantes.add(f"{str_comma},00")
+
         if d == d.to_integral():
             variantes.add(str(int(d)))
+
     except InvalidOperation:
         variantes.add(val)
 
-    return [v.replace(" ", "") for v in variantes]  # standardisation
+    return [v.replace(" ", "") for v in variantes]
 
 def get_lines(words, y_tolerance=3):
     lignes = defaultdict(list)
